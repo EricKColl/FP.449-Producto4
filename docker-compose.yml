@@ -48,6 +48,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mariadb://db:3306/biblioteca
       SPRING_DATASOURCE_USERNAME: ${DB_USER:-biblioteca}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-biblioteca}
+      # Clave que firma los tokens de la API (al menos 32 caracteres). Vacía: se genera una al arrancar
+      BIBLIOTECA_API_CLAVE: ${BIBLIOTECA_API_CLAVE:-}
       TZ: Europe/Madrid
     ports:
       - "${APP_PORT:-8080}:8080"

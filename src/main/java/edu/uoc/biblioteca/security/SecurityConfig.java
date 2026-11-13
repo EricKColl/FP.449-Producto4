@@ -58,6 +58,9 @@ public class SecurityConfig {
                         .requestMatchers("/css/**", "/img/**", "/js/**", "/webjars/**", "/error", "/actuator/health").permitAll()
                         // formLogin().permitAll() solo abre /login exacto, no /login?registrado
                         .requestMatchers("/login", "/registro").permitAll()
+                        // Documentación de la API REST (Swagger UI y especificación OpenAPI). La API tiene su propia
+                        // cadena de seguridad, con token, en api/ApiSecurityConfig
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         // Cualquier cuenta tiene su inicio y sus datos; préstamos, reservas y favoritos son del cliente
                         .requestMatchers("/inicio", "/user/cuenta", "/user/cuenta/password", "/sesion/renovar", "/avisos/flujo").authenticated()

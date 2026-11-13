@@ -35,17 +35,18 @@ Erick revisa e integra cada pull request, monta el vídeo y la memoria y prepara
 
 ## Turno 1 · Base de la API (Erick)
 
-Rama `feature/erick-base-api` · **Del viernes 13 al lunes 16 de noviembre**
+Rama `feature/erick-base-api` · **Del viernes 13 al lunes 16 de noviembre** · Terminado el 13 de noviembre
 
-- [ ] Dependencias: springdoc-openapi (Swagger UI) y Spring Security OAuth2 Resource Server (JWT).
-- [ ] Cadena de seguridad propia para `/api/**`: sin sesión, sin CSRF, CORS abierto a terceros y token JWT.
-- [ ] `POST /api/auth/token`: email y contraseña → token firmado, con el mismo bloqueo tras cinco fallos que el login web.
-- [ ] `GET /api/cuenta`: primer punto securizado, de ejemplo para los demás turnos.
-- [ ] Errores de la API en JSON (*Problem Details*) y 404 en JSON para cualquier ruta `/api/*` que no exista.
-- [ ] Swagger UI en `/swagger-ui.html` con la descripción de la API y el esquema de seguridad del token.
-- [ ] Colección y entorno de Postman en `postman/`, y GitHub Actions que la ejecuta con Newman.
-- [ ] Tests del token, de la cadena de seguridad, de los errores y de Swagger.
-- [ ] Docker: nombres de contenedores propios del Producto 4.
+- [x] Dependencias: springdoc-openapi 3.2 (Swagger UI) y Spring Security OAuth2 Resource Server (JWT).
+- [x] Cadena de seguridad propia para `/api/**` (`api/ApiSecurityConfig`): sin sesión, sin CSRF, CORS abierto a terceros y token JWT.
+- [x] `POST /api/auth/token`: email y contraseña → token firmado (HS256, 60 minutos), con el mismo bloqueo tras cinco fallos que el login web.
+- [x] `GET /api/cuenta`: primer punto securizado, de ejemplo para los demás turnos.
+- [x] Errores de la API en JSON (*Problem Details*) y 404 en JSON para cualquier ruta `/api/*` que no exista.
+- [x] Swagger UI en `/swagger-ui.html` con la descripción de la API, el esquema de seguridad del token y el esquema `Error`.
+- [x] Colección y entorno de Postman en `postman/` (7 peticiones, 28 comprobaciones), y job «API con Postman» en GitHub Actions con Newman.
+- [x] Clase base `ApiTest` para los tests de la API, con `token(ADMIN)`, `token(LAURA)` y `token(JAVIER)`.
+- [x] Tests del token, de la cadena de seguridad, de los errores y de Swagger: `./mvnw verify` da **199 tests**.
+- [x] Docker: nombres de contenedores propios del Producto 4 y variable `BIBLIOTECA_API_CLAVE`.
 
 ## Turno 2 · Catálogo abierto (Jacobo)
 
