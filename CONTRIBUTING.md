@@ -12,7 +12,8 @@ léelas antes de empezar tu parte para que todas las pantallas se vean y funcion
 
 ## Stack
 
-Java 21 · Spring Boot 4.1.1 (`spring-boot-starter-webmvc`, `-thymeleaf`, `-data-jpa`, `-validation`, `-actuator`)
+Java 21 · Spring Boot 4.1.2 (`spring-boot-starter-webmvc`, `-thymeleaf`, `-data-jpa`, `-validation`, `-actuator`,
+`-security-oauth2-resource-server`) · springdoc-openapi 3.2
 · MariaDB 11.8 · H2 (tests y perfil `h2`) · Bootstrap 5.3, Tabler Icons y las fuentes Inter y Playfair Display como WebJars · Maven Wrapper.
 
 Spring Boot 4 tiene paquetes de test distintos a los de la versión 3:
@@ -31,6 +32,20 @@ Spring Boot 4 tiene paquetes de test distintos a los de la versión 3:
 - **Tests:** `@WithMockUser(roles = "ADMIN")` para simular el rol y `.with(csrf())` en cada `post(...)`. Hay ejemplos en `SeguridadTest`.
 - **JavaScript:** solo en ficheros de `static/js` (`app.js` para todas las páginas). La política de contenidos (CSP) de `SecurityConfig` bloquea los scripts escritos dentro del HTML y los atributos como `onsubmit`. Para pedir confirmación antes de borrar: `th:data-confirmar="|¿Eliminar «${libro.titulo}»?|"` en el `<form>`.
 - **Librerías nuevas:** como WebJar en el `pom.xml`, nunca desde un CDN: la aplicación tiene que funcionar sin conexión y la CSP no deja cargar scripts de otros dominios.
+
+## API REST (Producto 4)
+
+- **Dónde va:** todo en `src/main/java/edu/uoc/biblioteca/api/`. Controladores con `@RestController` y rutas que empiezan por `/api/`; las respuestas, en `api/dto/`.
+- **Nunca devolver entidades:** cada respuesta es un `record` de `api/dto` con un método estático `de(...)` que lo construye desde la entidad. Así no salen contraseñas ni relaciones circulares.
+- **La lógica, en los servicios:** el controlador llama a `LibroService`, `PrestamoService`… y convierte el resultado a DTO. Si falta algo, se añade un método al servicio, no una consulta en el controlador.
+- **Seguridad:** las reglas de `/api/**` están en `api/ApiSecurityConfig.java`, aparte de las de la web. `/api/admin/**` es solo ADMIN, `/api/user/**` solo USER y lo demás pide un token de cualquier rol: una ruta abierta nueva hay que añadirla a las reglas.
+- **Usuario del token:** `@AuthenticationPrincipal Jwt token` y `TokenService.usuarioId(token)`. Nunca un id de usuario en la URL o en el cuerpo de `/api/user/*`.
+- **Errores:** se lanzan las mismas excepciones que en la web. `ApiErrores` las convierte en JSON: `ResponseStatusException` con su código, `IllegalStateException` → 409, `IllegalArgumentException` → 400 y `@Valid` → 400 con `errores`.
+- **Códigos:** `GET` → 200; crear → 201 con la cabecera `Location`; borrar → 204 sin cuerpo.
+- **Swagger:** en cada controlador `@Tag(name = "Catálogo" | "Administración" | "Cliente")` y, si es protegido, `@SecurityRequirement(name = OpenApiConfig.TOKEN)`. En cada método `@Operation(summary, description)` y un `@ApiResponse` por código. En los DTO, `@Schema(example = ...)`. Los 401 y 403 de las rutas protegidas los añade `OpenApiConfig` solo.
+- **Tests:** las clases de test extienden `ApiTest` (en `src/test/java/edu/uoc/biblioteca/api/`), que da `mvc` y `token(ADMIN)`, `token(LAURA)` o `token(JAVIER)`: `mvc.perform(get("/api/cuenta").with(token(LAURA)))`. El JSON se comprueba con `jsonPath("$.campo")`.
+- **Postman:** cada punto de acceso nuevo, con al menos una petición en su carpeta de `postman/biblioteca-api.postman_collection.json` y sus `pm.test`. Se exporta desde Postman en formato *Collection v2.1* encima del fichero.
+
 
 ## Comandos
 
@@ -53,6 +68,8 @@ src/main/java/edu/uoc/biblioteca/
   repository/   interfaces Spring Data (JpaRepository)
   service/      lógica de negocio (@Service, @Transactional)
   controller/   controladores MVC (@Controller)
+  api/          API REST: ApiSecurityConfig, TokenService, ApiErrores, OpenApiConfig y los @RestController
+  api/dto/      respuestas y cuerpos de la API (records)
 src/main/resources/
   db/01-esquema.sql, db/02-datos.sql   esquema y datos (los usan MariaDB en Docker y el perfil h2)
   templates/fragments/layout.html      head, navbar, alertas y footer comunes

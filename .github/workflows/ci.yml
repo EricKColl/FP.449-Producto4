@@ -51,9 +51,62 @@ jobs:
           curl -fsS http://localhost:8080/ | grep -q 'Biblioteca BackLord'
           curl -fsS http://localhost:8080/ | grep -q 'títulos en el catálogo'
           curl -fsS 'http://localhost:8080/libros/sugerencias?q=garcia' | grep -q 'García Márquez'
+      - name: Comprobar que la API y Swagger responden en Docker
+        run: |
+          curl -fsS -X POST http://localhost:8080/api/auth/token -H 'Content-Type: application/json' \
+            -d '{"email":"admin@example.com","password":"Admin1234"}' | grep -q '"tipo":"Bearer"'
+          curl -fsS http://localhost:8080/v3/api-docs | grep -q 'API de la Biblioteca BackLord'
       - name: Logs
         if: failure()
         run: docker compose logs
       - name: Parar
         if: always()
         run: docker compose down -v
+
+  postman:
+    name: API con Postman
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Compilar la aplicación
+        run: ./mvnw -B -q package -DskipTests
+      - name: Arrancar la aplicación con la base de datos en memoria
+        run: |
+          java -jar target/biblioteca-*.jar --spring.profiles.active=h2 > app.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -fs http://localhost:8080/actuator/health > /dev/null && exit 0
+            sleep 2
+          done
+          cat app.log
+          exit 1
+      # La misma colección que se usa en Postman (carpeta postman/), ejecutada con Newman, su versión de consola
+      - name: Ejecutar la colección de Postman con Newman
+        run: |
+          npx --yes newman@6.2.1 run postman/biblioteca-api.postman_collection.json \
+            -e postman/local.postman_environment.json \
+            --reporters cli,junit --reporter-junit-export newman/resultado.xml
+      - name: Resumen de Postman
+        if: always()
+        run: |
+          if [ -f newman/resultado.xml ]; then
+            total=$(grep -o '<testcase ' newman/resultado.xml | wc -l)
+            fallos=$(grep -o '<failure' newman/resultado.xml | wc -l)
+            {
+              echo "## Colección de Postman"
+              echo
+              echo "| Comprobaciones | Fallos |"
+              echo "|---|---|"
+              echo "| $total | $fallos |"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Logs
+        if: failure()
+        run: cat app.log
