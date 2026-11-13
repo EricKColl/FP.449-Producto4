@@ -1,7 +1,7 @@
-# Biblioteca · Producto 3
+# Biblioteca · Producto 4
 
-[![CI](https://github.com/EricKColl/FP.449-Producto3/actions/workflows/ci.yml/badge.svg)](https://github.com/EricKColl/FP.449-Producto3/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/EricKColl/FP.449-Producto3/actions/workflows/codeql.yml/badge.svg)](https://github.com/EricKColl/FP.449-Producto3/actions/workflows/codeql.yml)
+[![CI](https://github.com/EricKColl/FP.449-Producto4/actions/workflows/ci.yml/badge.svg)](https://github.com/EricKColl/FP.449-Producto4/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/EricKColl/FP.449-Producto4/actions/workflows/codeql.yml/badge.svg)](https://github.com/EricKColl/FP.449-Producto4/actions/workflows/codeql.yml)
 ![Cobertura mínima](https://img.shields.io/badge/cobertura%20m%C3%ADnima-90%25-brightgreen)
 ![Java](https://img.shields.io/badge/Java-21-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1-6DB33F)
@@ -9,8 +9,9 @@
 Aplicación web de gestión de una biblioteca: catálogo de libros y autores, usuarios y préstamos.
 Proyecto en equipo de la asignatura FP065 *Aplicación backend con tecnología Java en servidores de aplicaciones* (UOC).
 
-Este producto parte del [Producto 2](https://github.com/EricKColl/FP.449-Producto2), el primer MVC completo, y añade la seguridad:
-usuarios con cuenta, Spring Security, login y registro, y control de acceso por roles con las rutas `/admin/*` y `/user/*`.
+Este producto parte del [Producto 3](https://github.com/EricKColl/FP.449-Producto3), la aplicación web completa con usuarios,
+Spring Security y roles, y añade una **API REST** en `/api/*` sobre la misma base de datos: un catálogo abierto, puntos de
+acceso protegidos con token JWT, documentación con Swagger UI y una colección de Postman para comprobarla.
 
 - 📄 [Enunciado y rúbrica](docs/enunciado.md)
 - 👥 [Reparto de tareas y calendario](docs/reparto-tareas.md)
@@ -54,7 +55,7 @@ docker compose up -d --build
 | MariaDB | `localhost:3307` | Para MySQL Workbench, HeidiSQL, DBeaver o IntelliJ |
 
 ```bash
-docker compose ps          # biblioteca-p3-app y biblioteca-p3-db deben aparecer como (healthy)
+docker compose ps          # biblioteca-p4-app y biblioteca-p4-db deben aparecer como (healthy)
 docker compose logs -f app # logs de la aplicación
 docker compose down        # parar (los datos se conservan)
 docker compose down -v     # parar y borrar los datos (se recrean desde los scripts al arrancar)
@@ -139,7 +140,7 @@ La BD se publica en el **3307** del equipo para no chocar con un MySQL o XAMPP l
 |---|---|
 | `Port 8080 was already in use` al arrancar desde el IDE, o en http://localhost:8080 sale la aplicación de otro producto | Sigue en marcha el contenedor de un producto anterior, que se arranca solo con Docker Desktop. Pararlo desde la carpeta de ese producto con `docker compose down`, o con `docker rm -f biblioteca` en el caso del Producto 1 |
 | `port is already allocated` en el 8080, el 8081 o el 3307 | Siguen en marcha los contenedores de un producto anterior. En su carpeta: `docker compose stop` |
-| `Port 8080 was already in use` y el contenedor `biblioteca-p3-app` está en marcha | La app ya corre en Docker. Usar una de las dos formas: o Docker (`docker compose up -d`), o el IDE (`docker compose stop app` y ▶ en IntelliJ) |
+| `Port 8080 was already in use` y el contenedor `biblioteca-p4-app` está en marcha | La app ya corre en Docker. Usar una de las dos formas: o Docker (`docker compose up -d`), o el IDE (`docker compose stop app` y ▶ en IntelliJ) |
 | `port is already allocated` en el 3307 | Otro MariaDB/MySQL usa ese puerto. Cambiar `DB_PORT` en un fichero `.env` (ver `.env.example`) |
 | `Schema-validation: missing column` o `missing table` | La BD de Docker se creó con un esquema anterior. Recrearla: `docker compose down -v && docker compose up -d db adminer` |
 | IntelliJ marca errores en todo el código | *File → Project Structure → SDK*: `temurin-21` y recargar Maven (pestaña Maven → flechas en círculo) |

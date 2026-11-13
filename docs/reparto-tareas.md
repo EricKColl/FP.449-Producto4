@@ -1,143 +1,112 @@
-# Reparto de tareas · Producto 3
+# Reparto de tareas · Producto 4
 
-Entrega: **lunes 23 de noviembre de 2026**. Fecha interna de entrega: **domingo 22 de noviembre** (un día de margen).
+Entrega: **martes 15 de diciembre de 2026, 23:59**. Fecha interna de entrega: **lunes 14 de diciembre** (un día de margen).
 
-El reparto sigue la rúbrica (3 criterios, 25 puntos): cada persona es responsable de **una parte vertical de la aplicación**
-(modelo o servicio + controlador + vistas + tests).
+El reparto sigue la rúbrica (3 criterios, 25 puntos). La aplicación web del Producto 3 no cambia: el Producto 4 le añade
+una **API REST** en `/api/*` que lee y escribe en la misma base de datos a través de los servicios que ya existen.
+Cada persona es responsable de **un grupo de rutas de la API** completo: controlador, DTO, documentación de Swagger,
+tests y sus peticiones en la colección de Postman.
 
-**El código se hace por turnos**, uno detrás de otro, como en el Producto 2: cada persona programa su parte cuando le toca,
-partiendo del trabajo del anterior ya unido en `develop`. Así nadie tiene que resolver conflictos al juntar el código.
+**El código se hace por turnos**, uno detrás de otro, como en los productos 2 y 3: cada persona programa su parte cuando
+le toca, partiendo del trabajo del anterior ya unido en `develop`. Así nadie tiene que resolver conflictos al juntar el código.
 
 | Turno | Persona | Rama | Parte | Criterio de la rúbrica |
 |---|---|---|---|---|
-| **1** | Erick Coll | `feature/erick-base-seguridad` | Base de seguridad: Spring Security, login, roles y Docker | Spring Security · Gestión por roles |
-| **2** | Jacobo Barrera | `feature/jacobo-er-registro` | Diagramas E/R y relacional, nueva entidad y formulario de registro | E/R y modelos · Spring Security |
-| **3** | Carles Miguel | `feature/carles-rutas-admin` | Rutas `/admin/*`: todo lo que crea, modifica o borra filas | Gestión por roles |
-| **4** | Antonio Charneco | `feature/antonio-rutas-user` | Rutas `/user/*`: lo que hace el usuario con su cuenta | Gestión por roles |
+| **1** | Erick Coll | `feature/erick-base-api` | Base de la API: token JWT, cadena de seguridad de `/api/**`, errores en JSON, Swagger y Postman | Puntos securizados · Swagger |
+| **2** | Jacobo Barrera | `feature/jacobo-api-catalogo` | Catálogo abierto: `/api/libros` y `/api/autores` | ApiRestFull |
+| **3** | Carles Miguel | `feature/carles-api-admin` | Administración con token de ADMIN: `/api/admin/*` | Puntos securizados |
+| **4** | Antonio Charneco | `feature/antonio-api-user` | Cuenta del cliente con token de USER: `/api/user/*` | Puntos securizados |
 
 Erick revisa e integra cada pull request, monta el vídeo y la memoria y prepara la entrega.
 
-## Decisión de modelo
+## Decisiones de diseño
 
-- **Usuario** deja de ser solo un socio y pasa a ser también la cuenta de acceso: se le añaden `password` (cifrada con BCrypt) y `rol` (`ADMIN` o `USER`). Ya tiene más de 5 atributos.
-- **Nueva relación: Usuario reserva Libro.** La rúbrica pide una relación *nueva* con las entidades anteriores, y Usuario–Préstamo ya existía en el Producto 2. La entidad `Reserva` (usuario, libro, fecha y estado) permite reservar los libros sin ejemplares disponibles, una de las propuestas de mejora de la memoria del Producto 2.
-- **Nueva relación: Usuario marca como favorito Libro (N:M).** Tabla intermedia `usuario_favorito`, sin atributos propios y con `@ManyToMany`. Completa a `Reserva`, que es una relación con atributos.
+- **Misma base de datos, mismos servicios.** Los controladores de la API llaman a `LibroService`, `PrestamoService`,
+  `ReservaService`… igual que los de la web, así que las reglas (límite de tres préstamos, cola de reservas, no borrar
+  un libro con préstamos) son las mismas en las dos puertas.
+- **Nunca se devuelven entidades.** Cada respuesta es un `record` de `api/dto` con los campos justos: así no salen
+  contraseñas ni relaciones circulares, y el JSON no cambia aunque cambie una entidad.
+- **Token JWT firmado (Spring Security OAuth2 Resource Server).** `POST /api/auth/token` con email y contraseña devuelve
+  un token que caduca en 60 minutos. Se manda en la cabecera `Authorization: Bearer <token>`. La API no usa sesión ni
+  cookies, así que no necesita CSRF.
+- **Errores en JSON estándar** (*Problem Details*, RFC 9457): 400, 401, 403, 404 y 409 llevan siempre `status`,
+  `title` y `detail`, y los de validación, la lista de campos que fallan.
+- **Swagger UI** documenta todos los puntos de acceso, con ejemplos y el botón *Authorize* para probar los protegidos.
 
-## Turno 1 · Base de seguridad (Erick)
+## Turno 1 · Base de la API (Erick)
 
-Rama `feature/erick-base-seguridad` · **Del 30 de octubre al martes 3 de noviembre**
+Rama `feature/erick-base-api` · **Del viernes 13 al lunes 16 de noviembre**
 
-- [x] Dependencias: Spring Security e integración con Thymeleaf.
-- [x] `usuario` con `password` y `rol` en `01-esquema.sql`, `02-datos.sql` y la entidad. Cuentas de prueba en el README.
-- [x] `SecurityConfig`, `UserDetailsService` y BCrypt.
-- [x] Formulario de login propio con el diseño BackLord, cierre de sesión y página de acceso denegado (403).
-- [x] Reglas de acceso: `/admin/**` solo ADMIN, `/user/**` con sesión iniciada y el resto reservado a ADMIN.
-- [x] Menú lateral, inicio y ficha de libro según el rol. Primera ruta de usuario: `/user/cuenta`.
-- [x] Alta y edición de usuarios con contraseña y rol. Nadie elimina su propia cuenta ni deja la aplicación sin administradores.
-- [x] Protección CSRF activa en todos los formularios.
-- [x] Tests existentes adaptados y 23 nuevos de login, cuentas y acceso por rol: `./mvnw verify` da **89 tests**.
-- [x] Docker: nombres de contenedores propios del Producto 3, para que no choquen con los del Producto 2.
+- [ ] Dependencias: springdoc-openapi (Swagger UI) y Spring Security OAuth2 Resource Server (JWT).
+- [ ] Cadena de seguridad propia para `/api/**`: sin sesión, sin CSRF, CORS abierto a terceros y token JWT.
+- [ ] `POST /api/auth/token`: email y contraseña → token firmado, con el mismo bloqueo tras cinco fallos que el login web.
+- [ ] `GET /api/cuenta`: primer punto securizado, de ejemplo para los demás turnos.
+- [ ] Errores de la API en JSON (*Problem Details*) y 404 en JSON para cualquier ruta `/api/*` que no exista.
+- [ ] Swagger UI en `/swagger-ui.html` con la descripción de la API y el esquema de seguridad del token.
+- [ ] Colección y entorno de Postman en `postman/`, y GitHub Actions que la ejecuta con Newman.
+- [ ] Tests del token, de la cadena de seguridad, de los errores y de Swagger.
+- [ ] Docker: nombres de contenedores propios del Producto 4.
 
-## Turno 2 · Diagramas y registro (Jacobo)
+## Turno 2 · Catálogo abierto (Jacobo)
 
-Rama `feature/jacobo-er-registro` · **Del miércoles 4 al domingo 8 de noviembre** · Terminado el 2 de noviembre
+Rama `feature/jacobo-api-catalogo` · **Del martes 17 al domingo 22 de noviembre**
 
-- [x] Diagrama E/R con los atributos nuevos de Usuario y las relaciones Usuario–Reserva–Libro y Usuario–Favorito–Libro.
-- [x] Modelo relacional actualizado y `docs/modelo-datos.md`.
-- [x] Tabla `reserva`, entidad `Reserva` y repositorio, con las relaciones en `Usuario` y `Libro`.
-- [x] Tabla `usuario_favorito` y `@ManyToMany` entre `Usuario` y `Libro`.
-- [x] Formulario de registro público (`/registro`): validación, DNI y email únicos, contraseña cifrada y rol `USER` siempre.
-- [x] Abrir `/registro` en `SecurityConfig` y añadir el enlace «Crear cuenta» en el login y en el menú sin sesión.
-- [x] Tests del registro y de los repositorios: `./mvnw verify` da **100 tests**.
+- [ ] `GET /api/libros` con búsqueda (`?q=`) y filtro por género (`?genero=`), y `GET /api/libros/{id}`.
+- [ ] `GET /api/autores` y `GET /api/autores/{id}` con sus libros.
+- [ ] DTO `LibroResumen`, `LibroDetalle`, `AutorResumen` y `AutorDetalle`, con ejemplos para Swagger.
+- [ ] Abrir los `GET` del catálogo en la cadena de seguridad de la API: funcionan sin token.
+- [ ] Carpeta «Catálogo» en la colección de Postman, con sus comprobaciones.
+- [ ] Tests: JSON correcto, búsqueda, 404 en JSON y sin token.
 
-## Turno 3 · Rutas de administración (Carles)
+## Turno 3 · Administración (Carles)
 
-Rama `feature/carles-rutas-admin` · **Del lunes 9 al viernes 13 de noviembre** · Terminado el 3 de noviembre
+Rama `feature/carles-api-admin` · **Del lunes 23 al sábado 28 de noviembre**
 
-- [x] Mover a `/admin/*` todas las rutas de libros, autores y usuarios que crean, modifican o borran filas.
-- [x] Separar la escritura de libros en `LibroAdminController`, como ya están `AutorAdminController` y `UsuarioAdminController`.
-- [x] Actualizar enlaces y formularios: los botones de crear, editar y eliminar solo se ven con rol ADMIN.
-- [x] Quitar de `SecurityConfig` las reglas temporales de `/libros/nuevo`, `/libros/*/editar`, `/autores/nuevo` y `/autores/*/editar`.
-- [x] Tests: un USER o una visita sin sesión no pueden crear, editar ni borrar: `./mvnw verify` da **108 tests**.
+- [ ] `POST`, `PUT` y `DELETE` de `/api/admin/libros`, con validación (400 con los campos que fallan) y 409 si el libro tiene préstamos.
+- [ ] `GET /api/admin/usuarios`, sin contraseñas.
+- [ ] `GET /api/admin/prestamos` con filtro por estado y `POST /api/admin/prestamos/{id}/devolucion`.
+- [ ] Solo con token de ADMIN: sin token, 401; con token de USER, 403.
+- [ ] Carpeta «Administración» en Postman, con un libro que se crea, se edita y se borra.
+- [ ] Tests de los tres perfiles: sin token, USER y ADMIN.
 
-## Turno 4 · Rutas de usuario (Antonio)
+## Turno 4 · Cuenta del cliente (Antonio)
 
-Rama `feature/antonio-rutas-user` · **Del sábado 14 al miércoles 18 de noviembre** · Terminado el 5 de noviembre
+Rama `feature/antonio-api-user` · **Del domingo 29 de noviembre al viernes 4 de diciembre**
 
-- [x] `/user/prestamos`: los préstamos del usuario con sesión iniciada y pedir un libro. El usuario sale de la sesión, nunca del formulario.
-- [x] `/user/reservas`: reservar un libro sin ejemplares, ver las reservas propias y cancelarlas.
-- [x] `/user/favoritos`: marcar y desmarcar libros desde su ficha y ver la lista propia.
-- [x] `/admin/prestamos`: la gestión de todos los préstamos y el registro de devoluciones.
-- [x] Añadir «Mis préstamos», «Mis reservas» y «Mis favoritos» al menú para quien tenga la sesión iniciada.
-- [x] Tests: un usuario no puede ver ni tocar los préstamos, las reservas o los favoritos de otro: `./mvnw verify` da **124 tests**.
+- [ ] `GET /api/user/prestamos` y `POST /api/user/prestamos/{id}/renovacion`.
+- [ ] `GET`, `POST` y `DELETE` de `/api/user/reservas`, con el puesto en la cola.
+- [ ] `GET`, `PUT` y `DELETE` de `/api/user/favoritos/{libroId}`.
+- [ ] El usuario sale siempre del token, nunca de la URL ni del cuerpo: nadie ve ni toca lo de otro.
+- [ ] Solo con token de USER: sin token, 401; con token de ADMIN, 403.
+- [ ] Carpeta «Cliente» en Postman y tests de aislamiento entre usuarios.
 
 ## Calendario por turnos
 
 | Fechas | Qué | Quién |
 |---|---|---|
-| 30 oct – 3 nov | Base de seguridad | Erick |
-| 4 – 8 nov | Diagramas, `Reserva`, favoritos en el modelo y registro | Jacobo |
-| 9 – 13 nov | Rutas `/admin/*` | Carles |
-| 14 – 18 nov | Rutas `/user/*` | Antonio |
-| 19 nov | Congelación del código | Todos |
-| 20 – 21 nov | Vídeo: cada uno graba su parte y Erick los une | Todos |
-| 22 nov | Memoria, PDF y ZIP | Erick |
-| **23 nov** | **Entrega** | |
+| 13 – 16 nov | Base de la API, token, Swagger y Postman | Erick |
+| 17 – 22 nov | Catálogo abierto: `/api/libros` y `/api/autores` | Jacobo |
+| 23 – 28 nov | Administración: `/api/admin/*` | Carles |
+| 29 nov – 4 dic | Cuenta del cliente: `/api/user/*` | Antonio |
+| 5 – 7 dic | Repaso final de Swagger y Postman | Erick |
+| 8 dic | Congelación del código | Todos |
+| 9 – 11 dic | Vídeo: cada uno graba su parte y Erick los une | Todos |
+| 12 – 13 dic | Memoria en PDF (3-5 páginas) | Erick |
+| 14 dic | Entrega interna: todo revisado | Todos |
+| **15 dic** | **Entrega** | |
 
-Cada turno empieza con `git switch` a su rama y `git merge develop`, para partir de lo último. Erick avisa en el grupo cuando une una pull request: es la señal para que empiece el turno siguiente.
+Cada turno empieza con `git switch` a su rama y `git merge develop`, para partir de lo último. Erick avisa en el grupo
+cuando une una pull request: es la señal para que empiece el turno siguiente. Si alguien acaba antes, puede abrir su
+pull request antes de su fecha.
 
 ## Memoria
 
 Cada persona envía a Erick, al acabar su turno, qué ha hecho y qué dificultades ha tenido.
 
-## Vídeo (9 min): presentación y cuatro partes en el orden de los turnos
-
-El vídeo enseña **toda la seguridad funcionando**: cómo entra cada perfil y qué puede hacer. Sigue el orden de los turnos,
-de la visita sin sesión al administrador. Cada persona explica **unos 2 minutos** con su voz, empezando por lo que ha hecho.
-Erick abre el vídeo justo después de la portada animada (2:30) y lo cierra (0:30), y une todos los cortes.
-
-| Orden | Quién | Duración | Pantallas | Qué enseña |
-|---|---|---|---|---|
-| 1 | Erick | 2:30 | Cartelas, IntelliJ, Docker, Adminer, login | Presentación del equipo y del producto. Tecnologías nuevas (Spring Security 7, BCrypt, Thymeleaf Extras Security) y el recorrido de una petición por la cadena de seguridad. En IntelliJ IDEA: las dependencias del `pom.xml` y `SecurityConfig` con las reglas por rol. `docker compose up -d --build` y `docker compose ps` con los contenedores `biblioteca-p3-*`. Adminer: la tabla `usuario` con las contraseñas cifradas y el rol. En la aplicación: el catálogo sin sesión, un login con la contraseña mal (sale el error), el login de `admin@example.com` con su menú, el cierre de sesión y la página 403 al abrir `/admin/usuarios` con `laura.martinez@example.com`. |
-| 2 | Jacobo | 2:00 | Diagramas, Adminer, registro | Diagrama E/R y modelo relacional: la relación con atributos `Reserva` y la N:M `usuario_favorito`. Las dos tablas en Adminer. Registro en «Crear cuenta»: primero con errores (DNI repetido `12345678Z`, email repetido `laura.martinez@example.com` y una contraseña corta) y después bien, con el medidor de fuerza: *Sara Ortega Gil*, DNI `11223344B`, `sara.ortega@example.com`, contraseña `Lectora-2026!`. Iniciar sesión con la cuenta nueva: menú de usuaria y rol `USER` en Adminer, aunque nadie lo eligió en el formulario. |
-| 3 | Carles | 2:00 | Libros, autores, rutas | Con `admin@example.com`: el catálogo con «Nuevo libro» y, en la vista de lista, las acciones de cada fila. Crear en `/admin/libros/nuevo` primero con errores y después bien: *Eva Luna*, ISBN `978-84-9759-243-7`, de Isabel Allende, con la vista previa de la portada. Editarlo y eliminarlo; *Don Quijote de la Mancha* no se deja borrar porque tiene préstamos. Alta y baja de un autor. Las mismas pantallas con Laura, sin botones. La ruta antigua `/libros/nuevo` da 404 y `/admin/libros/nuevo` con Laura da 403. |
-| 4 | Antonio | 2:00 | Mis préstamos, reservas, favoritos, préstamos | Con `laura.martinez@example.com`: «Mis préstamos» y renovar *Cien años de soledad*; pedir *1984*. Reservar *El señor de los anillos*, que no tiene ejemplares libres, ver su puesto en la cola y cancelar la reserva. Marcar y quitar un favorito. `/admin/prestamos` con Laura da 403. Con `admin@example.com`: la gestión de todos los préstamos por estado y registrar una devolución. |
-| 5 | Erick | 0:30 | Avisos, móvil, tests, GitHub | Cierre: un aviso en tiempo real, la aplicación en el móvil con el menú plegado, `./mvnw verify` con los tests en verde y las comprobaciones automáticas de GitHub. |
-
-Cada parte empieza en la pantalla donde acaba la anterior, así los cortes se unen sin saltos. Si alguien se pasa de
-2:15, que lo regrabe: el total no debe superar los 9 minutos.
-
-**Cómo grabar tu parte**
-
-1. Después de la congelación (jueves 19), ponte al día: `git switch develop` y `git pull`.
-2. Si tienes arrancado el Producto 2, páralo (`docker compose stop` en su carpeta), y para la aplicación de IntelliJ (■).
-3. Arranca todo como en la entrega, con los datos de prueba limpios: `docker compose down -v` y `docker compose up -d --build`.
-   Espera a que `docker compose ps` diga *healthy* en `biblioteca-p3-app`. Repítelo antes de cada toma si has cambiado datos.
-4. Prepara Chrome: ventana maximizada, zoom al 100 % (`Ctrl`+`0`), barra de marcadores oculta (`Ctrl`+`Mayús`+`B`) y
-   notificaciones del sistema desactivadas («No molestar» o «Concentración»). Que no se vea nada personal.
-5. Graba la **pantalla completa con micrófono** en formato mp4, a 1920×1080. Recomendado: **OBS Studio** (Windows y Mac).
-   Sin instalar nada: `Cmd`+`Mayús`+`5` en Mac; en Windows, `Win`+`Alt`+`R` graba solo la ventana activa (sirve si solo enseñas el navegador).
-6. Habla como si se lo explicaras al profesor: qué haces y por qué funciona así. Mueve el ratón despacio y ensáyalo una vez antes de grabar.
-7. Llama al fichero `video-<orden>-<nombre>.mp4` (por ejemplo `video-3-carles.mp4`) y envíaselo a Erick
-   (Google Drive o WeTransfer) **el sábado 21**.
-
-**Detalles de la aplicación que conviene saber antes de grabar**
-
-- Cuentas: `admin@example.com` / `Admin1234` y `laura.martinez@example.com` / `Usuario1234`. Adminer en
-  http://localhost:8081 (servidor `db`, usuario `biblioteca`, contraseña `biblioteca`, base de datos `biblioteca`).
-- Cinco contraseñas mal seguidas con el mismo email bloquean ese email cinco minutos: si pasa, espera o usa otra cuenta.
-- En «Mis préstamos», «Mis reservas» y «Mis favoritos» se abre un consejo abajo a la derecha: ciérralo con «Entendido»
-  o la X antes de explicar.
-- Borrar o cancelar abre una ventana propia de confirmación: hay que pulsar «Sí, eliminar» o «Sí, cancelarla».
-- Si Docker Desktop no arranca en Windows con un error de `engine.sock` o `dockerInference`, **no** pulses
-  «Reset to factory defaults»: avisa a Erick.
-
-**Montaje (Erick)**: une los cortes en orden con la presentación y el cierre, sube el vídeo a YouTube como **Oculto** y
-pasa el enlace al grupo el **domingo 22**: va en la memoria y en el ZIP de la entrega.
-
 ## Definición de hecho
 
-- `./mvnw verify` en verde y `docker compose up -d --build` funcionando.
-- Probado en el navegador con los dos roles y sin sesión.
-- Sin errores de la consola y con el diseño común (ver `CONTRIBUTING.md`).
-- Pull request hacia `develop` con la integración continua en verde.
+- `./mvnw verify` en verde (tests y cobertura mínima del 90 %) y `docker compose up -d --build` funcionando.
+- Cada punto de acceso nuevo aparece en Swagger UI con su descripción, sus respuestas y un ejemplo.
+- Cada punto de acceso nuevo tiene al menos una petición en la colección de Postman con sus comprobaciones, y
+  el job «API con Postman» de GitHub Actions está en verde.
+- Ninguna respuesta de la API devuelve una entidad JPA ni una contraseña.

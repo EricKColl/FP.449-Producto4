@@ -1,73 +1,76 @@
-# Producto 3 · Seguridad y usuarios (FP065)
+# Producto 4 · Servicio APIRestFul (FP065)
 
 > Copia del enunciado y de la rúbrica del aula virtual, para tenerlos siempre junto al código.
-> Fecha de entrega: **lunes 23 de noviembre de 2026**.
+> Fecha de entrega: **martes 15 de diciembre de 2026, 23:59** (se permite 1 intento).
 
 ## Descripción
 
-En cualquier aplicación son esenciales los usuarios, tanto para la securización de la aplicación como para la administración y gestión de las acciones que se pueden realizar.
-
-Mediante Spring.io podemos recubrir nuestro primer desarrollo con esa gestión de usuarios, clientes y roles.
+Una vez finalizada la aplicación para el uso a través de la web, queremos poder servir datos a través de un nuevo servicio APIRestFul atacando a la base de datos que ya disponemos y ofreciendo un nuevo punto de acceso con datos que puedan ser consumidas por terceros.
 
 ## Objetivos
 
-- Modificar nuestra base de datos para la gestión con usuarios.
-- Utilizar, configurar e implementar Spring Security para poder gestionar los diferentes usuarios.
+- Crear servicio APIRestFull con Spring.io
+- Usar postman u otra aplicación para la comprobación del buen funcionamiento
 
 ## Pasos a seguir
 
 1. Leer detenidamente estas instrucciones e identificar los requerimientos de la actividad.
 2. Revisar detenidamente la rúbrica de evaluación.
 3. Consultar los recursos necesarios facilitados en el aula.
-4. Modificar nuestro diagrama E/R para la incorporación de usuarios a nuestra aplicación tanto desde el punto de vista de la securización como desde el punto de vista de la lógica de la misma.
-5. Incorporar Spring Security dentro de la aplicación. Para ello:
-   - Se modificarán las configuraciones del proyecto para incorporar Spring Security.
-   - Incorporar el formulario de login y registro de usuario.
-6. Se modifican las relaciones en al menos una de las entidades propuestas, ya que los usuarios interactúan con el resto de entidades. En el caso de la aplicación de Alquiler de vehículos, los usuarios no sólo sirven para el login, sino que pueden realizar Alquiler de vehículos. Por lo tanto se realizarán los siguientes cambios en la aplicación:
-   - Se añadirán los modelos necesarios nuevos.
-   - Se modificarán los modelos con las anotaciones necesarias.
-   - Se modificarán las vistas y controladores.
-7. Se añade una gestión por roles de las diferentes partes de la aplicación. Se añaden las siguientes rutas:
-   - Una ruta `/admin/*` en la que únicamente tendrá acceso el rol ADMIN. Aquí se moverán todas las rutas que creen, modifiquen o borren filas de los diferentes modelos.
-   - Una ruta `/user/*`, donde el usuario con acceso podrá interactuar con partes de la aplicación.
-8. Realizad las modificaciones oportunas del contenedor Docker.
+4. Se creará una nueva ruta del tipo `/api/` donde se presentará al menos 2 endpoints a partir de las entidades que ya existen en la base de datos. En el caso de la aplicación de Alquiler de vehiculos podrían ser:
+   - `GET /api/alquilerVehiculos`
+   - `GET /api/clientes`
+5. Se creará 3 puntos de acceso securizado con algún mecanismo de seguridad dentro de la comunicación APIRestFull, tipo tokens o bien OAuth2.
+6. Tener presente el uso de Swagger y SwaggerUI tanto para la estandarización y presentación de la documentación del API.
 
 ## Requisitos
 
-- Partir del diseño MVC del Producto 2.
-- Disponer del framework de programación en Spring o Java EE.
+- Buscar información en Internet y los recursos facilitados.
 
 ## Entrega
 
 - Por el canal indicado en el aula virtual.
-- Formato: ZIP o RAR.
+- Formato: PDF.
+- Nombre del archivo: `producto4(FP065)_Apellido1Apellido2_Nombre`.
+- Extensión recomendada: 3-5 páginas.
 - Memoria del trabajo: trabajo realizado, dificultades, puntos no realizados, propuestas de mejora, autoevaluación, webgrafía.
-- Nombre del archivo: `producto3(FP065)_Apellido1Apellido2_Nombre`.
 - Vídeo o enlace de YouTube mostrando el funcionamiento de la aplicación.
 
 ## Rúbrica (máximo 25 puntos, aprobado con 12,5)
 
-### Modificación del diagrama E/R y modelos dentro de la aplicación (8 puntos)
+### ApiRestFull (8 puntos)
 
 | Puntos | Nivel |
 |---|---|
-| **8** | Se han realizado las modificaciones en el diagrama E/R para incluir a los usuarios con al menos 5 atributos, y al menos una nueva relación con entidades anteriores. Se han reflejado estas modificaciones dentro de los modelos de Spring. |
-| 6 | Igual, con al menos 4 atributos y al menos una nueva relación con entidades anteriores. |
-| 4 | Igual, con al menos 3 atributos y al menos una nueva relación con entidades anteriores. |
-| 2 | Usuarios con al menos 5 atributos, reflejados en los modelos de Spring. |
+| **8** | Se ha generado una nueva ruta tipo `/api/` en la que existen al menos 2 endpoints no securizados a partir de la información y modelos almacenados en la base de datos. La información devuelta será JSON y se comprobará el correcto funcionamiento con herramientas tipo POSTMAN. |
+| 6 | Al menos 2 endpoints no securizados a partir de la información y modelos almacenados en la base de datos. La información devuelta será JSON. |
+| 4 | Al menos 1 endpoint no securizado a partir de la información y modelos almacenados en la base de datos. La información devuelta será JSON. |
+| 2 | Al menos 1 endpoint no securizado a partir de la información y modelos almacenados en la base de datos. |
 
-### Configuración e implementación de Spring Security (9 puntos)
-
-| Puntos | Nivel |
-|---|---|
-| **9** | Se ha configurado y añadido a la aplicación Spring Security con un formulario de login y otro de registro, modificando o añadiendo los controllers necesarios. |
-| 6,75 | Spring Security con un formulario de login, modificando o añadiendo los controllers necesarios. |
-| 2,25 | Spring Security con un formulario de login. |
-
-### Gestión por roles (8 puntos)
+### Punto de acceso securizado (9 puntos)
 
 | Puntos | Nivel |
 |---|---|
-| **8** | Se añaden al menos 2 grupos de rutas, admin y user, con las que se implementa el control de acceso por roles a determinadas partes de la app. Se modifica el menú y las vistas de forma dinámica de acuerdo al rol del usuario. |
-| 6 | Al menos 2 grupos de rutas, admin y user, con control de acceso por roles. |
-| 2 | 1 grupo de rutas, user, con control de acceso por roles. |
+| **9** | Se crean al menos 3 puntos de acceso securizados implementando seguridad mediante tokens o bien oAuth2. La información devuelta será JSON y se comprobará el correcto funcionamiento con herramientas tipo POSTMAN. |
+| 6,75 | Al menos 3 puntos de acceso securizados con tokens u oAuth2. La información devuelta será JSON. |
+| 4,5 | Al menos 2 puntos de acceso securizados con tokens u oAuth2. La información devuelta será JSON. |
+| 2,25 | Al menos 2 puntos de acceso securizados con tokens u oAuth2. |
+
+### Uso de Swagger y Swagger UI (8 puntos)
+
+| Puntos | Nivel |
+|---|---|
+| **8** | Se incorpora Swagger y Swagger UI para estandarizar y presentar al menos 5 puntos de acceso creados. |
+| 6 | Swagger y Swagger UI para al menos 3 puntos de acceso creados. |
+| 4 | Swagger y Swagger UI para al menos 2 puntos de acceso creados. |
+| 2 | Swagger para al menos 2 puntos de acceso creados. |
+
+## Cómo cubrimos la nota máxima
+
+| Criterio | Lo que pide el 100 % | Cómo lo cubrimos |
+|---|---|---|
+| ApiRestFull (8) | 2 endpoints sin seguridad, JSON y probados con Postman | Catálogo abierto: `GET /api/libros`, `/api/libros/{id}`, `/api/autores` y `/api/autores/{id}` (turno de Jacobo) |
+| Puntos securizados (9) | 3 puntos con tokens u OAuth2, JSON y probados con Postman | Token JWT firmado que da `POST /api/auth/token` (Erick); `/api/admin/*` solo con token de ADMIN (Carles) y `/api/user/*` con token de USER (Antonio) |
+| Swagger (8) | Swagger y Swagger UI con 5 puntos de acceso | springdoc-openapi: especificación OpenAPI en `/v3/api-docs` y Swagger UI en `/swagger-ui.html`, con todos los puntos documentados y el botón *Authorize* para el token |
+
+La colección de Postman está en `postman/` y GitHub Actions la ejecuta con Newman en cada pull request.
