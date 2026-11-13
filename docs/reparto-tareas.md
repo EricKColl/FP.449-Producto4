@@ -91,7 +91,8 @@ Rama `feature/antonio-api-user` · **Del domingo 29 de noviembre al viernes 4 de
 | 29 nov – 4 dic | Cuenta del cliente: `/api/user/*` | Antonio |
 | 5 – 7 dic | Repaso final de Swagger y Postman | Erick |
 | 8 dic | Congelación del código | Todos |
-| 9 – 11 dic | Vídeo: cada uno graba su parte y Erick los une | Todos |
+| 9 – 11 dic | Vídeo: cada uno graba su parte (ver «Vídeo») y la envía el viernes 11 | Todos |
+| 12 dic | Erick une el vídeo y lo sube a YouTube | Erick |
 | 12 – 13 dic | Memoria en PDF (3-5 páginas) | Erick |
 | 14 dic | Entrega interna: todo revisado | Todos |
 | **15 dic** | **Entrega** | |
@@ -103,6 +104,52 @@ pull request antes de su fecha.
 ## Memoria
 
 Cada persona envía a Erick, al acabar su turno, qué ha hecho y qué dificultades ha tenido.
+
+## Vídeo (unos 10 min): presentación y cuatro partes en el orden de los turnos
+
+El vídeo enseña **toda la API funcionando** y cómo se comprueba: cada ruta en **Swagger UI** y en **Postman**, con el JSON
+que devuelve y los errores que da cuando algo no se puede hacer. Sigue el orden de los turnos, de la base al cliente.
+Cada persona explica **su parte** con su voz, empezando por lo que ha hecho. Erick abre el vídeo (2:30) y lo cierra (1:00),
+y une todos los cortes.
+
+| Orden | Quién | Duración | Pantallas | Qué enseña |
+|---|---|---|---|---|
+| 1 | Erick | 2:30 | Cartelas, IntelliJ, Docker, Swagger UI, Postman | Presentación del equipo y del producto: una API REST en `/api/*` sobre la misma base de datos y los mismos servicios que la web. Tecnologías nuevas: Spring Security OAuth2 Resource Server (token JWT firmado), springdoc-openapi (Swagger UI) y Postman con Newman. En IntelliJ IDEA: las dependencias del `pom.xml`, `ApiSecurityConfig` (cadena propia sin sesión ni CSRF y reglas por rol) y `TokenService` (qué lleva el token). `docker compose up -d --build` y `docker compose ps` con los contenedores `biblioteca-p4-*`. Swagger UI: las cuatro secciones y el esquema `Error`. `POST /api/auth/token` con `admin@example.com`, el token en **Authorize** y `GET /api/cuenta`; sin token, **401** en JSON. En Postman: importar la colección y el entorno y ejecutar la carpeta **Token**. |
+| 2 | Jacobo | 2:00 | IntelliJ, Swagger UI, navegador, Postman | Por qué la API devuelve DTO (`record`) y no entidades: `LibroResumen` y `LibroDetalle`, y la regla que abre el catálogo en `ApiSecurityConfig`. En Swagger UI, sin token: `GET /api/libros` (14 libros), con `q` = `garcia` y con `genero` = `fantasia`; la ficha del libro **2** con sus autores y los ejemplares libres; el libro **999** da **404** en JSON. `GET /api/autores/2` con sus libros. `http://localhost:8080/api/libros/2` abierto en el navegador. En Postman: la carpeta **Catálogo** ejecutada, con sus comprobaciones en verde. |
+| 3 | Carles | 2:30 | IntelliJ, Swagger UI, Postman | `LibroEntrada` con las reglas de validación y `LibroAdminApiController`. En Swagger UI con el token de `admin@example.com`: alta de *Eva Luna* (ISBN `978-84-9759-243-7`, autor 3) → **201** con la cabecera `Location`; modificarla (**200**) y borrarla (**204**). *Don Quijote de la Mancha* (libro 1) no se borra: **409**. Un alta con el título y los autores vacíos: **400** con `errores`. `GET /api/admin/usuarios` sin contraseñas y `GET /api/admin/prestamos` con `estado` = `VENCIDO`; registrar la devolución del préstamo **5** (no el 6: su libro lo reserva Antonio en su parte). Con el token de `laura.martinez@example.com`: **403**; sin token: **401**. En Postman: la carpeta **Administración** ejecutada. |
+| 4 | Antonio | 2:30 | IntelliJ, Swagger UI, Postman | Por qué el usuario sale siempre del token (`TokenService.usuarioId`) y nunca de la URL. En Swagger UI con el token de `laura.martinez@example.com`: «Mis préstamos» y renovar el préstamo **7** (**200**, y la segunda vez **409**); reservar *El señor de los anillos* (libro **10**) → **201** con su puesto en la cola, intentar reservar *1984* (**409**) y cancelar la reserva (**204**); marcar y quitar *La sombra del viento* (libro **4**) de favoritos. Con el token de `javier.lopez@example.com`, renovar el préstamo 7 de Laura da **404**; con el de `admin@example.com`, `/api/user/prestamos` da **403**. En Postman: la carpeta **Cliente** ejecutada. |
+| 5 | Erick | 1:00 | Postman, terminal, GitHub | Cierre: **Run collection** con la colección entera (33 peticiones en verde), `./mvnw verify` con los 242 tests y la cobertura, y en GitHub Actions los cuatro controles en verde, con el resumen de **API con Postman**. La especificación OpenAPI en `/v3/api-docs`. |
+
+Cada parte empieza en la pantalla donde acaba la anterior, así los cortes se unen sin saltos. Si alguien se pasa de
+su tiempo en más de 15 segundos, que lo regrabe: el total no debe superar los 11 minutos.
+
+**Cómo grabar tu parte**
+
+1. Después de la congelación (martes 8), ponte al día: `git switch develop` y `git pull`.
+2. Si tienes arrancado el Producto 3, páralo (`docker compose stop` en su carpeta), y para la aplicación de IntelliJ (■).
+3. Arranca todo como en la entrega, con los datos de prueba limpios: `docker compose down -v` y `docker compose up -d --build`.
+   Espera a que `docker compose ps` diga *healthy* en `biblioteca-p4-app`. Repítelo antes de cada toma si has cambiado datos.
+4. En Postman, importa la colección y el entorno de `postman/` (elige **Replace**) y el entorno **Biblioteca · local**.
+5. Prepara Chrome: ventana maximizada, zoom al 100 % (`Ctrl`+`0`), barra de marcadores oculta (`Ctrl`+`Mayús`+`B`) y
+   notificaciones del sistema desactivadas («No molestar» o «Concentración»). Que no se vea nada personal: ni tu cuenta de
+   Postman (cierra el panel de la derecha) ni otras pestañas.
+6. Graba la **pantalla completa con micrófono** en formato mp4, a 1920×1080. Recomendado: **OBS Studio** (Windows y Mac).
+7. Habla como si se lo explicaras al profesor: qué haces y por qué responde así. Mueve el ratón despacio y ensáyalo una vez antes de grabar.
+8. Llama al fichero `video-<orden>-<nombre>.mp4` (por ejemplo `video-3-carles.mp4`) y envíaselo a Erick
+   (Google Drive o WeTransfer) **el viernes 11 de diciembre**.
+
+**Detalles de la API que conviene saber antes de grabar**
+
+- Cuentas: `admin@example.com` / `Admin1234`, `laura.martinez@example.com` y `javier.lopez@example.com` / `Usuario1234`.
+- El token caduca a los 60 minutos y **deja de valer si se reinicia la aplicación**: si todo da 401, pide uno nuevo.
+- En Swagger UI el token se pega en **Authorize** sin comillas y sin la palabra «Bearer». Para cambiar de cuenta: **Logout** y otro token.
+- Cinco contraseñas mal seguidas con el mismo email lo bloquean cinco minutos (**429**): si pasa, espera o usa otra cuenta.
+- La renovación del préstamo 7 y la devolución del préstamo 5 cambian los datos: para repetir la toma, `docker compose down -v` y `docker compose up -d --build`.
+- Si Docker Desktop no arranca en Windows con un error de `engine.sock` o `dockerInference`, **no** pulses
+  «Reset to factory defaults»: avisa a Erick.
+
+**Montaje (Erick)**: une los cortes en orden con la presentación y el cierre, sube el vídeo a YouTube como **Oculto** y
+pasa el enlace al grupo el **sábado 12**: va en la memoria.
 
 ## Definición de hecho
 
