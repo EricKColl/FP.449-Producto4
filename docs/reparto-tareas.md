@@ -50,14 +50,14 @@ Rama `feature/erick-base-api` · **Del viernes 13 al lunes 16 de noviembre** · 
 
 ## Turno 2 · Catálogo abierto (Jacobo)
 
-Rama `feature/jacobo-api-catalogo` · **Del martes 17 al domingo 22 de noviembre**
+Rama `feature/jacobo-api-catalogo` · **Del martes 17 al domingo 22 de noviembre** · Implementación y pruebas terminadas el 18 de noviembre
 
-- [ ] `GET /api/libros` con búsqueda (`?q=`) y filtro por género (`?genero=`), y `GET /api/libros/{id}`.
-- [ ] `GET /api/autores` y `GET /api/autores/{id}` con sus libros.
-- [ ] DTO `LibroResumen`, `LibroDetalle`, `AutorResumen` y `AutorDetalle`, con ejemplos para Swagger.
-- [ ] Abrir los `GET` del catálogo en la cadena de seguridad de la API: funcionan sin token.
-- [ ] Carpeta «Catálogo» en la colección de Postman, con sus comprobaciones.
-- [ ] Tests: JSON correcto, búsqueda, 404 en JSON y sin token.
+- [x] `GET /api/libros` con búsqueda (`?q=`) y filtro por género (`?genero=`), y `GET /api/libros/{id}`.
+- [x] `GET /api/autores` y `GET /api/autores/{id}` con sus libros.
+- [x] DTO `LibroResumen`, `LibroDetalle`, `AutorResumen` y `AutorDetalle`, con ejemplos para Swagger.
+- [x] Abrir los `GET` del catálogo en la cadena de seguridad de la API: funcionan sin token.
+- [x] Carpeta «Catálogo» en la colección de Postman, con siete peticiones sin token. Colección completa: 14 peticiones y 58 comprobaciones; dos ejecuciones consecutivas en verde contra MariaDB.
+- [x] Tests: JSON correcto, búsqueda, filtros, 400 y 404 en JSON, privacidad y acceso solo a consultas sin token. `./mvnw verify` da **211 tests**, sin fallos; cobertura de líneas **94,94 %**.
 
 ## Turno 3 · Administración (Carles)
 

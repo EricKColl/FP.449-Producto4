@@ -141,8 +141,8 @@ En Swagger UI: ejecuta `POST /api/auth/token`, copia el token, pulsa **Authorize
 |---|---|---|---|
 | `POST /api/auth/token` | No | Devuelve un token con email y contraseña | Erick ✅ |
 | `GET /api/cuenta` | Cualquiera | Datos de la cuenta del token | Erick ✅ |
-| `GET /api/libros` · `GET /api/libros/{id}` | No | Catálogo con búsqueda (`?q=`) y filtro (`?genero=`), y ficha de un libro | Jacobo |
-| `GET /api/autores` · `GET /api/autores/{id}` | No | Autores y sus libros | Jacobo |
+| `GET /api/libros` · `GET /api/libros/{id}` | No | Catálogo con búsqueda (`?q=`) y filtro (`?genero=`), y ficha de un libro | Jacobo ✅ |
+| `GET /api/autores` · `GET /api/autores/{id}` | No | Autores y sus libros | Jacobo ✅ |
 | `POST` · `PUT` · `DELETE /api/admin/libros` | ADMIN | Alta, edición y baja de libros | Carles |
 | `GET /api/admin/usuarios` | ADMIN | Usuarios, sin contraseñas | Carles |
 | `GET /api/admin/prestamos` · `POST /api/admin/prestamos/{id}/devolucion` | ADMIN | Préstamos por estado y devoluciones | Carles |
@@ -177,6 +177,11 @@ Todos los errores son JSON con el formato estándar *Problem Details* (RFC 9457)
 3. *Run collection*: la carpeta *Token* guarda los tokens y las demás los usan. Cada petición comprueba su código de
    respuesta y que devuelve JSON.
 
+La carpeta **Catálogo** contiene siete consultas sin token: listado, búsqueda, filtro, ficha de libro,
+libro inexistente (404), listado de autores y ficha de autor. Con el catálogo, la colección completa tiene
+**14 peticiones y 58 comprobaciones por ejecución**. Se ha verificado dos veces seguidas contra MariaDB
+con el entorno **Biblioteca · local**, sin fallos ni errores.
+
 La misma colección se ejecuta con Newman en GitHub Actions en cada pull request (job *API con Postman*). En local:
 
 ```bash
@@ -191,6 +196,10 @@ genera una al arrancar y los tokens dejan de valer al reiniciar la aplicación.
 ```bash
 ./mvnw verify               # Windows: .\mvnw.cmd verify
 ```
+
+Con el catálogo público, `./mvnw verify` pasa **211 tests**, incluidos los 12 de `CatalogoApiTest`.
+La cobertura de líneas es **94,94 %**, por encima del mínimo del 90 %. Las pruebas comprueban también
+que solo se abren los GET del catálogo, que los errores son JSON y que no se exponen datos de los lectores.
 
 No necesitan Docker: se ejecutan sobre H2 con los scripts de MariaDB, y fallan si alguna entidad no coincide con las tablas.
 GitHub Actions los pasa en cada pull request y además levanta el `docker compose` completo.
