@@ -47,6 +47,9 @@ public class ApiSecurityConfig {
                 .authorizeHttpRequests(rutas -> rutas
                         // Pedir un token tiene que poder hacerse sin token
                         .requestMatchers(HttpMethod.POST, "/api/auth/token").permitAll()
+                        // El catálogo se consulta sin token, como en la web
+                        .requestMatchers(HttpMethod.GET, "/api/libros", "/api/libros/*",
+                                "/api/autores", "/api/autores/*").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/user/**").hasRole("USER")
                         // El resto de la API pide un token válido de cualquier rol
