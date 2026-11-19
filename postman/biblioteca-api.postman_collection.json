@@ -37,9 +37,10 @@
                 "exec": [
                   "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
                   "const libros = pm.response.json();",
-                  "pm.test(\"Devuelve los 14 libros por título\", () => {",
-                  "    pm.expect(libros).to.be.an(\"array\").with.lengthOf(14);",
+                  "pm.test(\"Devuelve el catálogo empezando por 1984\", () => {",
+                  "    pm.expect(libros).to.be.an(\"array\").that.is.not.empty;",
                   "    pm.expect(libros[0].titulo).to.eql(\"1984\");",
+                  "    pm.expect(libros.map(libro => libro.titulo)).to.include.members([\"Cien años de soledad\", \"El hobbit\"]);",
                   "});",
                   "pm.test(\"Cada libro trae título, autores y ejemplares libres\", () => {",
                   "    libros.forEach(libro => pm.expect(libro).to.include.keys(\"id\", \"titulo\", \"autores\", \"disponibles\"));",
@@ -124,9 +125,9 @@
               "script": {
                 "exec": [
                   "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
-                  "pm.test(\"Devuelve los cuatro libros de fantasía\", () => {",
+                  "pm.test(\"Solo devuelve libros de fantasía, también sin la tilde\", () => {",
                   "    const libros = pm.response.json();",
-                  "    pm.expect(libros).to.have.lengthOf(4);",
+                  "    pm.expect(libros.map(libro => libro.titulo)).to.include.members([\"El hobbit\", \"El señor de los anillos\"]);",
                   "    libros.forEach(libro => pm.expect(libro.genero).to.eql(\"Fantasía\"));",
                   "});"
                 ],
@@ -244,11 +245,11 @@
               "script": {
                 "exec": [
                   "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
-                  "pm.test(\"Devuelve los 11 autores con cuántos libros tienen\", () => {",
+                  "pm.test(\"Devuelve los autores con cuántos libros tienen\", () => {",
                   "    const autores = pm.response.json();",
-                  "    pm.expect(autores).to.be.an(\"array\").with.lengthOf(11);",
+                  "    pm.expect(autores).to.be.an(\"array\").that.is.not.empty;",
                   "    pm.expect(autores[0]).to.include.keys(\"id\", \"nombre\", \"apellidos\", \"libros\");",
-                  "    pm.expect(autores[0].apellidos).to.eql(\"Allende\");",
+                  "    pm.expect(autores.map(autor => autor.apellidos)).to.include.members([\"Allende\", \"García Márquez\", \"Tolkien\"]);",
                   "    pm.expect(autores.find(autor => autor.apellidos === \"García Márquez\").libros).to.eql(2);",
                   "});"
                 ],

@@ -93,7 +93,7 @@ Rama `feature/antonio-api-user` · **Del domingo 29 de noviembre al viernes 4 de
 | 8 dic | Congelación del código | Todos |
 | 9 – 11 dic | Vídeo: cada uno graba su parte (ver «Vídeo») y la envía el viernes 11 | Todos |
 | 12 dic | Erick une el vídeo y lo sube a YouTube | Erick |
-| 12 – 13 dic | Memoria en PDF (3-5 páginas) | Erick |
+| 12 – 13 dic | Memoria en PDF | Erick |
 | 14 dic | Entrega interna: todo revisado | Todos |
 | **15 dic** | **Entrega** | |
 

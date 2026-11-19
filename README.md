@@ -178,9 +178,8 @@ Todos los errores son JSON con el formato estándar *Problem Details* (RFC 9457)
    respuesta y que devuelve JSON.
 
 La carpeta **Catálogo** contiene siete consultas sin token: listado, búsqueda, filtro, ficha de libro,
-libro inexistente (404), listado de autores y ficha de autor. Con el catálogo, la colección completa tiene
-**14 peticiones y 58 comprobaciones por ejecución**. Se ha verificado dos veces seguidas contra MariaDB
-con el entorno **Biblioteca · local**, sin fallos ni errores.
+libro inexistente (404), listado de autores y ficha de autor. Sus comprobaciones no dependen de cuántos libros
+haya, así que la colección se puede ejecutar varias veces seguidas, también contra MariaDB.
 
 La misma colección se ejecuta con Newman en GitHub Actions en cada pull request (job *API con Postman*). En local:
 
@@ -197,9 +196,9 @@ genera una al arrancar y los tokens dejan de valer al reiniciar la aplicación.
 ./mvnw verify               # Windows: .\mvnw.cmd verify
 ```
 
-Con el catálogo público, `./mvnw verify` pasa **211 tests**, incluidos los 12 de `CatalogoApiTest`.
-La cobertura de líneas es **94,94 %**, por encima del mínimo del 90 %. Las pruebas comprueban también
-que solo se abren los GET del catálogo, que los errores son JSON y que no se exponen datos de los lectores.
+Los tests de la API están en `src/test/java/edu/uoc/biblioteca/api/` y extienden `ApiTest`, que añade a cada
+petición un token real. Los del catálogo (`CatalogoApiTest`) comprueban también que solo se abren sus `GET`, que los
+errores son JSON y que no se exponen datos de los lectores.
 
 No necesitan Docker: se ejecutan sobre H2 con los scripts de MariaDB, y fallan si alguna entidad no coincide con las tablas.
 GitHub Actions los pasa en cada pull request y además levanta el `docker compose` completo.

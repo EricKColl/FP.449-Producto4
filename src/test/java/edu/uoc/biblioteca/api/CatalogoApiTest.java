@@ -149,8 +149,9 @@ class CatalogoApiTest extends ApiTest {
                 .andExpect(jsonPath("$.paths['/api/libros/{id}'].get").exists())
                 .andExpect(jsonPath("$.paths['/api/autores'].get").exists())
                 .andExpect(jsonPath("$.paths['/api/autores/{id}'].get.security").doesNotExist());
+        var documentacion = mvc.perform(get("/v3/api-docs"));
         for (String ruta : new String[]{"/api/libros", "/api/libros/{id}", "/api/autores", "/api/autores/{id}"}) {
-            mvc.perform(get("/v3/api-docs"))
+            documentacion
                     .andExpect(jsonPath("$.paths['" + ruta + "'].get.security").doesNotExist())
                     .andExpect(jsonPath("$.paths['" + ruta + "'].get.responses['200']").exists());
         }
