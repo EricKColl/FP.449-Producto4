@@ -63,12 +63,17 @@ Rama `feature/jacobo-api-catalogo` · **Del martes 17 al domingo 22 de noviembre
 
 Rama `feature/carles-api-admin` · **Del lunes 23 al sábado 28 de noviembre**
 
-- [ ] `POST`, `PUT` y `DELETE` de `/api/admin/libros`, con validación (400 con los campos que fallan) y 409 si el libro tiene préstamos.
-- [ ] `GET /api/admin/usuarios`, sin contraseñas.
-- [ ] `GET /api/admin/prestamos` con filtro por estado y `POST /api/admin/prestamos/{id}/devolucion`.
-- [ ] Solo con token de ADMIN: sin token, 401; con token de USER, 403.
-- [ ] Carpeta «Administración» en Postman, con un libro que se crea, se edita y se borra.
-- [ ] Tests de los tres perfiles: sin token, USER y ADMIN.
+- [x] `POST /api/admin/libros`, `PUT /api/admin/libros/{id}` y `DELETE /api/admin/libros/{id}`, con validación (400 con los campos que fallan) y 409 si el libro tiene préstamos.
+- [x] `GET /api/admin/usuarios`, sin contraseñas.
+- [x] `GET /api/admin/prestamos` con filtro por estado y `POST /api/admin/prestamos/{id}/devolucion`.
+- [x] Solo con token de ADMIN: sin token, 401; con token de USER, 403.
+- [x] Carpeta «Administración» en Postman, con un libro que se crea, se edita y se borra.
+- [x] Tests de los tres perfiles: sin token, USER y ADMIN.
+
+- [x] Seis operaciones documentadas en Swagger bajo «Administración», con DTO para el cuerpo de libros y las respuestas JSON.
+- [x] Validación del turno: **237 tests**, **95,40 %** de cobertura de líneas y comprobaciones Postman **90/90** en la ejecución sin escrituras y **25/25** en el ciclo de libros contra MariaDB. Las devoluciones se verificaron en H2.
+
+[Sección técnica para la memoria](memoria-administracion.md).
 
 ## Turno 4 · Cuenta del cliente (Antonio)
 
