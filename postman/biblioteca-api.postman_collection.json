@@ -535,6 +535,855 @@
       ]
     },
     {
+      "name": "Administración",
+      "description": "Gestión de la biblioteca con el token de ADMIN (tokenAdmin): ejecuta antes la carpeta Token. El ciclo de libros da de alta un libro de prueba con un ISBN nuevo en cada ejecución, lo edita, lo borra y comprueba que ya no existe. Las devoluciones se comprueban con un préstamo ya devuelto (409) y con uno que no existe (404), así que la carpeta no cambia ningún préstamo. La devolución correcta (200) la comprueba PrestamoAdminApiTest.",
+      "item": [
+        {
+          "name": "Libros · Alta del libro de prueba",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/libros",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "libros"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isbn\": \"{{adminLibroIsbn}}\",\n  \"titulo\": \"FP065 Postman {{adminLibroIsbn}}\",\n  \"editorial\": \"Pruebas FP065\",\n  \"anioPublicacion\": 2026,\n  \"genero\": \"Pruebas\",\n  \"ejemplares\": 2,\n  \"autores\": [\n    3\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.variables.set(\"adminLibroId\", \"\");",
+                  "pm.variables.set(\"adminLibroIsbn\", \"P\" + pm.variables.replaceIn(\"{{$randomUUID}}\").replace(/-/g, \"\").slice(0, 16));"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Responde 201\", () => pm.response.to.have.status(201));",
+                  "const libro = pm.response.json();",
+                  "const location = pm.response.headers.get(\"Location\");",
+                  "if (pm.response.code === 201 && Number.isSafeInteger(libro.id) && libro.id > 0 &&",
+                  "    libro.isbn === pm.variables.get(\"adminLibroIsbn\") &&",
+                  "    libro.titulo === pm.variables.replaceIn(\"FP065 Postman {{adminLibroIsbn}}\")) {",
+                  "    pm.variables.set(\"adminLibroId\", String(libro.id));",
+                  "}",
+                  "pm.test(\"Devuelve la ficha del libro creado y su Location\", () => {",
+                  "    pm.expect(libro).to.have.all.keys(\"id\", \"isbn\", \"titulo\", \"editorial\", \"anioPublicacion\", \"genero\", \"ejemplares\", \"disponibles\", \"autores\");",
+                  "    pm.expect(libro.id).to.be.a(\"number\").above(0);",
+                  "    pm.expect(libro.isbn).to.eql(pm.variables.get(\"adminLibroIsbn\"));",
+                  "    pm.expect(libro.autores).to.have.lengthOf(1);",
+                  "    pm.expect(libro.autores[0]).to.include({id: 3});",
+                  "    pm.expect(libro.titulo).to.eql(pm.variables.replaceIn(\"FP065 Postman {{adminLibroIsbn}}\"));",
+                  "    pm.expect(libro.ejemplares).to.eql(2);",
+                  "    pm.expect(libro.disponibles).to.eql(2);",
+                  "    pm.expect(location).to.eql(\"/api/libros/\" + libro.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Libros · ISBN de prueba duplicado: 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/libros",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "libros"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isbn\": \"{{adminLibroIsbn}}\",\n  \"titulo\": \"FP065 Postman {{adminLibroIsbn}}\",\n  \"editorial\": \"Pruebas FP065\",\n  \"anioPublicacion\": 2026,\n  \"genero\": \"Pruebas\",\n  \"ejemplares\": 2,\n  \"autores\": [\n    3\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const id = pm.variables.get(\"adminLibroId\");",
+                  "if (!/^[1-9]\\d*$/.test(String(id)) || !pm.variables.get(\"adminLibroIsbn\")) {",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Responde 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"Formato Problem Details\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.match(/^application\\/problem\\+json\\b/i);",
+                  "    const error = pm.response.json();",
+                  "    pm.expect(error).to.include.keys(\"status\", \"title\", \"detail\", \"instance\");",
+                  "    pm.expect(error.status).to.eql(409);",
+                  "    pm.expect(error.detail).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "pm.test(\"Identifica el ISBN duplicado\", () => pm.expect(pm.response.json().detail).to.include(pm.variables.get(\"adminLibroIsbn\")));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Libros · Editar el libro de prueba",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/libros/{{adminLibroId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "libros",
+                "{{adminLibroId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isbn\": \"{{adminLibroIsbn}}\",\n  \"titulo\": \"FP065 Postman editado {{adminLibroIsbn}}\",\n  \"editorial\": \"Pruebas FP065\",\n  \"anioPublicacion\": 2026,\n  \"genero\": \"Pruebas\",\n  \"ejemplares\": 3,\n  \"autores\": [\n    3\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const id = pm.variables.get(\"adminLibroId\");",
+                  "if (!/^[1-9]\\d*$/.test(String(id)) || !pm.variables.get(\"adminLibroIsbn\")) {",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Devuelve los cambios del libro creado en esta ejecución\", () => {",
+                  "    const libro = pm.response.json();",
+                  "    pm.expect(libro).to.have.all.keys(\"id\", \"isbn\", \"titulo\", \"editorial\", \"anioPublicacion\", \"genero\", \"ejemplares\", \"disponibles\", \"autores\");",
+                  "    pm.expect(libro.id).to.be.a(\"number\").above(0);",
+                  "    pm.expect(libro.isbn).to.eql(pm.variables.get(\"adminLibroIsbn\"));",
+                  "    pm.expect(libro.autores).to.have.lengthOf(1);",
+                  "    pm.expect(libro.autores[0]).to.include({id: 3});",
+                  "    pm.expect(String(libro.id)).to.eql(pm.variables.get(\"adminLibroId\"));",
+                  "    pm.expect(libro.titulo).to.eql(pm.variables.replaceIn(\"FP065 Postman editado {{adminLibroIsbn}}\"));",
+                  "    pm.expect(libro.ejemplares).to.eql(3);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Libros · Borrar el libro de prueba",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/libros/{{adminLibroId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "libros",
+                "{{adminLibroId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdmin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const id = pm.variables.get(\"adminLibroId\");",
+                  "if (!/^[1-9]\\d*$/.test(String(id)) || !pm.variables.get(\"adminLibroIsbn\")) {",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Responde 204\", () => pm.response.to.have.status(204));",
+                  "pm.test(\"El cuerpo está vacío\", () => pm.expect(pm.response.text()).to.eql(\"\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Libros · Consultar la ficha borrada: 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/libros/{{adminLibroId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "libros",
+                "{{adminLibroId}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const id = pm.variables.get(\"adminLibroId\");",
+                  "if (!/^[1-9]\\d*$/.test(String(id)) || !pm.variables.get(\"adminLibroIsbn\")) {",
+                  "    pm.execution.skipRequest();",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Responde 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"Formato Problem Details\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.match(/^application\\/problem\\+json\\b/i);",
+                  "    const error = pm.response.json();",
+                  "    pm.expect(error).to.include.keys(\"status\", \"title\", \"detail\", \"instance\");",
+                  "    pm.expect(error.status).to.eql(404);",
+                  "    pm.expect(error.detail).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "pm.test(\"La ficha borrada ya no existe\", () => pm.expect(pm.response.json().detail).to.include(pm.variables.get(\"adminLibroId\")));",
+                  "if (pm.response.code === 404) {",
+                  "    pm.variables.unset(\"adminLibroId\");",
+                  "    pm.variables.unset(\"adminLibroIsbn\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Libros · Alta con datos inválidos: 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/libros",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "libros"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isbn\": \"\",\n  \"titulo\": \"\",\n  \"ejemplares\": 0,\n  \"autores\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Responde 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Formato Problem Details\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.match(/^application\\/problem\\+json\\b/i);",
+                  "    const error = pm.response.json();",
+                  "    pm.expect(error).to.include.keys(\"status\", \"title\", \"detail\", \"instance\");",
+                  "    pm.expect(error.status).to.eql(400);",
+                  "    pm.expect(error.detail).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "pm.test(\"Devuelve los cuatro errores de validación\", () => {",
+                  "    pm.expect(pm.response.json().errores).to.include.keys(\"isbn\", \"titulo\", \"ejemplares\", \"autores\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Libros · Alta sin token: 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/libros",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "libros"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isbn\": \"\",\n  \"titulo\": \"\",\n  \"ejemplares\": 0,\n  \"autores\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Responde 401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"Formato Problem Details\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.match(/^application\\/problem\\+json\\b/i);",
+                  "    const error = pm.response.json();",
+                  "    pm.expect(error).to.include.keys(\"status\", \"title\", \"detail\", \"instance\");",
+                  "    pm.expect(error.status).to.eql(401);",
+                  "    pm.expect(error.detail).to.be.a(\"string\").and.not.empty;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Libros · Alta con token USER: 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/libros",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "libros"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenUsuario}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isbn\": \"\",\n  \"titulo\": \"\",\n  \"ejemplares\": 0,\n  \"autores\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Responde 403\", () => pm.response.to.have.status(403));",
+                  "pm.test(\"Formato Problem Details\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.match(/^application\\/problem\\+json\\b/i);",
+                  "    const error = pm.response.json();",
+                  "    pm.expect(error).to.include.keys(\"status\", \"title\", \"detail\", \"instance\");",
+                  "    pm.expect(error.status).to.eql(403);",
+                  "    pm.expect(error.detail).to.be.a(\"string\").and.not.empty;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Usuarios · Listado administrativo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "usuarios"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdmin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Cada usuario contiene únicamente los campos administrativos, sin contraseñas ni hashes\", () => {",
+                  "    const usuarios = pm.response.json();",
+                  "    pm.expect(usuarios).to.be.an(\"array\").that.is.not.empty;",
+                  "    usuarios.forEach(usuario => {",
+                  "        pm.expect(usuario).to.have.all.keys(\"id\", \"dni\", \"nombre\", \"apellidos\", \"email\", \"telefono\", \"rol\", \"fechaAlta\", \"prestamosEnCurso\", \"prestamosVencidos\");",
+                  "        pm.expect(usuario.prestamosVencidos).to.be.a(\"number\").at.least(0);",
+                  "        pm.expect(usuario.prestamosEnCurso).to.be.a(\"number\").at.least(usuario.prestamosVencidos);",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Préstamos · Listado completo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/prestamos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "prestamos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdmin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
+                  "const prestamos = pm.response.json();",
+                  "pm.test(\"El listado está ordenado del más reciente al más antiguo\", () => {",
+                  "    pm.expect(prestamos).to.be.an(\"array\");",
+                  "    const fechas = prestamos.map(prestamo => prestamo.fechaPrestamo);",
+                  "    pm.expect(fechas).to.eql([...fechas].sort().reverse());",
+                  "});",
+                  "pm.test(\"El préstamo sigue el contrato del DTO\", () => {",
+                  "    prestamos.forEach(prestamo => {",
+                  "        pm.expect(prestamo).to.have.all.keys(\"id\", \"libroId\", \"titulo\", \"usuarioId\", \"usuario\", \"fechaPrestamo\", \"fechaDevolucionPrevista\", \"fechaDevolucion\", \"estado\", \"renovado\");",
+                  "        pm.expect(prestamo.estado).to.be.oneOf([\"ACTIVO\", \"VENCIDO\", \"DEVUELTO\"]);",
+                  "        pm.expect(prestamo.renovado).to.be.a(\"boolean\");",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Préstamos · Filtro VENCIDO",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/prestamos?estado=VENCIDO",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "prestamos"
+              ],
+              "query": [
+                {
+                  "key": "estado",
+                  "value": "VENCIDO"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdmin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
+                  "const prestamos = pm.response.json();",
+                  "pm.test(\"Solo devuelve préstamos abiertos y vencidos\", () => {",
+                  "    pm.expect(prestamos).to.be.an(\"array\");",
+                  "    prestamos.forEach(prestamo => {",
+                  "        pm.expect(prestamo.estado).to.eql(\"VENCIDO\");",
+                  "        pm.expect(prestamo.fechaDevolucion).to.eql(null);",
+                  "    });",
+                  "});",
+                  "pm.test(\"El préstamo sigue el contrato del DTO\", () => {",
+                  "    prestamos.forEach(prestamo => {",
+                  "        pm.expect(prestamo).to.have.all.keys(\"id\", \"libroId\", \"titulo\", \"usuarioId\", \"usuario\", \"fechaPrestamo\", \"fechaDevolucionPrevista\", \"fechaDevolucion\", \"estado\", \"renovado\");",
+                  "        pm.expect(prestamo.estado).to.be.oneOf([\"ACTIVO\", \"VENCIDO\", \"DEVUELTO\"]);",
+                  "        pm.expect(prestamo.renovado).to.be.a(\"boolean\");",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Préstamos · Estado inválido: 400",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/prestamos?estado=PERDIDO",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "prestamos"
+              ],
+              "query": [
+                {
+                  "key": "estado",
+                  "value": "PERDIDO"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdmin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Responde 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Formato Problem Details\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.match(/^application\\/problem\\+json\\b/i);",
+                  "    const error = pm.response.json();",
+                  "    pm.expect(error).to.include.keys(\"status\", \"title\", \"detail\", \"instance\");",
+                  "    pm.expect(error.status).to.eql(400);",
+                  "    pm.expect(error.detail).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "pm.test(\"Identifica el filtro incorrecto\", () => pm.expect(pm.response.json().detail).to.include(\"parámetro estado\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Préstamos · Devolver un préstamo ya devuelto: 409",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/prestamos/1/devolucion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "prestamos",
+                "1",
+                "devolucion"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Deshabilitada durante la ejecución. En una instancia H2 aislada, repite la petición anterior con el mismo ID y token."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Responde 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"Formato Problem Details\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.match(/^application\\/problem\\+json\\b/i);",
+                  "    const error = pm.response.json();",
+                  "    pm.expect(error).to.include.keys(\"status\", \"title\", \"detail\", \"instance\");",
+                  "    pm.expect(error.status).to.eql(409);",
+                  "    pm.expect(error.detail).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "pm.test(\"Explica que el préstamo ya estaba devuelto\", () => pm.expect(pm.response.json().detail).to.eql(\"Ese préstamo ya estaba devuelto\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Préstamos · Devolver un préstamo que no existe: 404",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/prestamos/999/devolucion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "prestamos",
+                "999",
+                "devolucion"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Deshabilitada durante la ejecución. En una instancia H2 aislada, repite la petición anterior con el mismo ID y token."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Responde 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"Formato Problem Details\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.match(/^application\\/problem\\+json\\b/i);",
+                  "    const error = pm.response.json();",
+                  "    pm.expect(error).to.include.keys(\"status\", \"title\", \"detail\", \"instance\");",
+                  "    pm.expect(error.status).to.eql(404);",
+                  "    pm.expect(error.detail).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "pm.test(\"Explica qué préstamo falta\", () => pm.expect(pm.response.json().detail).to.eql(\"No existe el préstamo 999\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Errores",
       "description": "Cómo responde la API cuando algo no se puede hacer: siempre JSON con status, title y detail.",
       "item": [

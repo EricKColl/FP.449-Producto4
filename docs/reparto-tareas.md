@@ -61,14 +61,15 @@ Rama `feature/jacobo-api-catalogo` · **Del martes 17 al domingo 22 de noviembre
 
 ## Turno 3 · Administración (Carles)
 
-Rama `feature/carles-api-admin` · **Del lunes 23 al sábado 28 de noviembre**
+Rama `feature/carles-api-admin` · **Del lunes 23 al sábado 28 de noviembre** · Terminado el 19 de noviembre
 
-- [ ] `POST`, `PUT` y `DELETE` de `/api/admin/libros`, con validación (400 con los campos que fallan) y 409 si el libro tiene préstamos.
-- [ ] `GET /api/admin/usuarios`, sin contraseñas.
-- [ ] `GET /api/admin/prestamos` con filtro por estado y `POST /api/admin/prestamos/{id}/devolucion`.
-- [ ] Solo con token de ADMIN: sin token, 401; con token de USER, 403.
-- [ ] Carpeta «Administración» en Postman, con un libro que se crea, se edita y se borra.
-- [ ] Tests de los tres perfiles: sin token, USER y ADMIN.
+- [x] `POST /api/admin/libros`, `PUT /api/admin/libros/{id}` y `DELETE /api/admin/libros/{id}`, con validación (400 con los campos que fallan) y 409 si el libro tiene préstamos.
+- [x] `GET /api/admin/usuarios`, sin contraseñas.
+- [x] `GET /api/admin/prestamos` con filtro por estado y `POST /api/admin/prestamos/{id}/devolucion`.
+- [x] Solo con token de ADMIN: sin token, 401; con token de USER, 403.
+- [x] Carpeta «Administración» en Postman, con un libro que se crea, se edita y se borra, y las devoluciones que no se pueden hacer (409 y 404).
+- [x] Las seis operaciones documentadas en Swagger, con la cabecera `Location` del alta.
+- [x] Tests de los tres perfiles: sin token, USER y ADMIN. `./mvnw verify` da **237 tests**.
 
 ## Turno 4 · Cuenta del cliente (Antonio)
 
@@ -118,7 +119,7 @@ y une todos los cortes.
 | 2 | Jacobo | 2:00 | IntelliJ, Swagger UI, navegador, Postman | Por qué la API devuelve DTO (`record`) y no entidades: `LibroResumen` y `LibroDetalle`, y la regla que abre el catálogo en `ApiSecurityConfig`. En Swagger UI, sin token: `GET /api/libros` (14 libros), con `q` = `garcia` y con `genero` = `fantasia`; la ficha del libro **2** con sus autores y los ejemplares libres; el libro **999** da **404** en JSON. `GET /api/autores/2` con sus libros. `http://localhost:8080/api/libros/2` abierto en el navegador. En Postman: la carpeta **Catálogo** ejecutada, con sus comprobaciones en verde. |
 | 3 | Carles | 2:30 | IntelliJ, Swagger UI, Postman | `LibroEntrada` con las reglas de validación y `LibroAdminApiController`. En Swagger UI con el token de `admin@example.com`: alta de *Eva Luna* (ISBN `978-84-9759-243-7`, autor 3) → **201** con la cabecera `Location`; modificarla (**200**) y borrarla (**204**). *Don Quijote de la Mancha* (libro 1) no se borra: **409**. Un alta con el título y los autores vacíos: **400** con `errores`. `GET /api/admin/usuarios` sin contraseñas y `GET /api/admin/prestamos` con `estado` = `VENCIDO`; registrar la devolución del préstamo **5** (no el 6: su libro lo reserva Antonio en su parte). Con el token de `laura.martinez@example.com`: **403**; sin token: **401**. En Postman: la carpeta **Administración** ejecutada. |
 | 4 | Antonio | 2:30 | IntelliJ, Swagger UI, Postman | Por qué el usuario sale siempre del token (`TokenService.usuarioId`) y nunca de la URL. En Swagger UI con el token de `laura.martinez@example.com`: «Mis préstamos» y renovar el préstamo **7** (**200**, y la segunda vez **409**); reservar *El señor de los anillos* (libro **10**) → **201** con su puesto en la cola, intentar reservar *1984* (**409**) y cancelar la reserva (**204**); marcar y quitar *La sombra del viento* (libro **4**) de favoritos. Con el token de `javier.lopez@example.com`, renovar el préstamo 7 de Laura da **404**; con el de `admin@example.com`, `/api/user/prestamos` da **403**. En Postman: la carpeta **Cliente** ejecutada. |
-| 5 | Erick | 1:00 | Postman, terminal, GitHub | Cierre: **Run collection** con la colección entera (33 peticiones en verde), `./mvnw verify` con los 242 tests y la cobertura, y en GitHub Actions los cuatro controles en verde, con el resumen de **API con Postman**. La especificación OpenAPI en `/v3/api-docs`. |
+| 5 | Erick | 1:00 | Postman, terminal, GitHub | Cierre: **Run collection** con la colección entera en verde, `./mvnw verify` con todos los tests y la cobertura, y en GitHub Actions los cuatro controles en verde, con el resumen de **API con Postman**. La especificación OpenAPI en `/v3/api-docs`. |
 
 Cada parte empieza en la pantalla donde acaba la anterior, así los cortes se unen sin saltos. Si alguien se pasa de
 su tiempo en más de 15 segundos, que lo regrabe: el total no debe superar los 11 minutos.

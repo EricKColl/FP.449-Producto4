@@ -143,15 +143,37 @@ En Swagger UI: ejecuta `POST /api/auth/token`, copia el token, pulsa **Authorize
 | `GET /api/cuenta` | Cualquiera | Datos de la cuenta del token | Erick ✅ |
 | `GET /api/libros` · `GET /api/libros/{id}` | No | Catálogo con búsqueda (`?q=`) y filtro (`?genero=`), y ficha de un libro | Jacobo ✅ |
 | `GET /api/autores` · `GET /api/autores/{id}` | No | Autores y sus libros | Jacobo ✅ |
-| `POST` · `PUT` · `DELETE /api/admin/libros` | ADMIN | Alta, edición y baja de libros | Carles |
-| `GET /api/admin/usuarios` | ADMIN | Usuarios, sin contraseñas | Carles |
-| `GET /api/admin/prestamos` · `POST /api/admin/prestamos/{id}/devolucion` | ADMIN | Préstamos por estado y devoluciones | Carles |
+| `POST /api/admin/libros` · `PUT /api/admin/libros/{id}` · `DELETE /api/admin/libros/{id}` | ADMIN | Alta, edición y baja de libros | Carles ✅ |
+| `GET /api/admin/usuarios` | ADMIN | Usuarios, sin contraseñas | Carles ✅ |
+| `GET /api/admin/prestamos` · `POST /api/admin/prestamos/{id}/devolucion` | ADMIN | Préstamos por estado y devoluciones | Carles ✅ |
 | `GET /api/user/prestamos` · `POST /api/user/prestamos/{id}/renovacion` | USER | Mis préstamos y renovarlos | Antonio |
 | `GET` · `POST` · `DELETE /api/user/reservas` | USER | Mis reservas y su puesto en la cola | Antonio |
 | `GET` · `PUT` · `DELETE /api/user/favoritos` | USER | Mis favoritos | Antonio |
 
 Sin token, las rutas protegidas responden **401**; con un token de otro rol, **403**. El usuario de `/api/user/*` sale
 siempre del token, nunca de la URL ni del cuerpo.
+
+### Administración
+
+Las seis operaciones de `/api/admin/**` necesitan un token de una cuenta ADMIN: sin token responden **401** y con el
+token de otra cuenta, **403**.
+
+| Operación | Respuesta correcta | Errores de la operación |
+|---|---|---|
+| Alta de libro | `201` con `LibroDetalle` y `Location: /api/libros/{id}` | `400` por datos inválidos o autor inexistente, `409` por ISBN duplicado |
+| Edición de libro | `200` con `LibroDetalle` | `400` por datos inválidos, `404` si no existe, `409` por ISBN duplicado |
+| Borrado de libro | `204` sin cuerpo | `400` por ID no numérico, `404` si no existe, `409` si tiene historial de préstamos |
+| Listado de usuarios | `200` con la lista de `UsuarioResumen` | |
+| Listado de préstamos | `200` con la lista de `PrestamoDto` | `400` si el filtro `estado` es inválido |
+| Registro de devolución | `200` con el `PrestamoDto` actualizado | `400` por ID no numérico, `404` si no existe, `409` si ya se devolvió |
+
+El alta y la edición reciben un `LibroEntrada` con las mismas reglas que el formulario de la web, y las respuestas
+son DTO: el listado de usuarios nunca lleva contraseñas. Los controladores llaman a los mismos servicios que la web.
+Sin filtro, el listado de préstamos los devuelve todos, del más reciente al más antiguo.
+
+En Swagger UI: pide el token de `admin@example.com` con `POST /api/auth/token`, pégalo en **Authorize** y abre la
+sección **Administración**. Ojo: el alta, la edición, el borrado y la devolución cambian datos de verdad; para volver
+a los datos de prueba, `docker compose down -v` y `docker compose up -d`.
 
 ### Errores
 
@@ -181,6 +203,12 @@ La carpeta **Catálogo** contiene siete consultas sin token: listado, búsqueda,
 libro inexistente (404), listado de autores y ficha de autor. Sus comprobaciones no dependen de cuántos libros
 haya, así que la colección se puede ejecutar varias veces seguidas, también contra MariaDB.
 
+La carpeta **Administración** necesita los tokens de **Token**, así que se ejecuta después. Su ciclo de libros da de
+alta un libro de prueba (`FP065 Postman …`) con un ISBN nuevo en cada ejecución, lo edita, lo borra y comprueba que ya no
+existe. Las devoluciones se comprueban con un préstamo ya devuelto (409) y con uno que no existe (404), de modo que la
+carpeta no cambia ningún préstamo; la devolución correcta la comprueba `PrestamoAdminApiTest`. Si una ejecución se
+interrumpe a mitad del ciclo, el libro de prueba puede quedarse en la base: se borra desde la web o con `DELETE`.
+
 La misma colección se ejecuta con Newman en GitHub Actions en cada pull request (job *API con Postman*). En local:
 
 ```bash
@@ -199,6 +227,9 @@ genera una al arrancar y los tokens dejan de valer al reiniciar la aplicación.
 Los tests de la API están en `src/test/java/edu/uoc/biblioteca/api/` y extienden `ApiTest`, que añade a cada
 petición un token real. Los del catálogo (`CatalogoApiTest`) comprueban también que solo se abren sus `GET`, que los
 errores son JSON y que no se exponen datos de los lectores.
+
+Los de administración (`LibroAdminApiTest`, `UsuarioAdminApiTest` y `PrestamoAdminApiTest`) prueban cada operación
+con los tres perfiles —sin token, con token de USER y con token de ADMIN— y los campos exactos de cada respuesta.
 
 No necesitan Docker: se ejecutan sobre H2 con los scripts de MariaDB, y fallan si alguna entidad no coincide con las tablas.
 GitHub Actions los pasa en cada pull request y además levanta el `docker compose` completo.

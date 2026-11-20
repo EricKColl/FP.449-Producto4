@@ -12,7 +12,6 @@ public record LibroDetalle(
         @Schema(example = "978-84-9759-245-1") String isbn,
         @Schema(example = "Cien años de soledad") String titulo,
         @Schema(example = "Debolsillo") String editorial,
-
         @Schema(example = "1967") Integer anioPublicacion,
         @Schema(example = "Novela") String genero,
         @Schema(description = "Ejemplares que tiene la biblioteca", example = "2") int ejemplares,
