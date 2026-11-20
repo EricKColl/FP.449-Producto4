@@ -155,8 +155,8 @@ siempre del token, nunca de la URL ni del cuerpo.
 
 ### Administración
 
-Las seis operaciones de `/api/admin/**` requieren un JWT Bearer con rol `ADMIN`. Devuelven `401` si falta el token o
-no es válido y `403` si el token pertenece a otro rol.
+Las seis operaciones de `/api/admin/**` necesitan un token de una cuenta ADMIN: sin token responden **401** y con el
+token de otra cuenta, **403**.
 
 | Operación | Respuesta correcta | Errores de la operación |
 |---|---|---|
@@ -167,17 +167,13 @@ no es válido y `403` si el token pertenece a otro rol.
 | Listado de préstamos | `200` con la lista de `PrestamoDto` | `400` si el filtro `estado` es inválido |
 | Registro de devolución | `200` con el `PrestamoDto` actualizado | `400` por ID no numérico, `404` si no existe, `409` si ya se devolvió |
 
-El alta y la edición validan el DTO `LibroEntrada`. Los DTO de salida limitan los datos serializados y el listado
-de usuarios excluye contraseñas y hashes. Los controladores llaman a los servicios que usa la web. El filtro de
-préstamos admite `ACTIVO`, `VENCIDO` y `DEVUELTO`. Sin filtro, el listado incluye todos los préstamos, del más
-reciente al más antiguo.
+El alta y la edición reciben un `LibroEntrada` con las mismas reglas que el formulario de la web, y las respuestas
+son DTO: el listado de usuarios nunca lleva contraseñas. Los controladores llaman a los mismos servicios que la web.
+Sin filtro, el listado de préstamos los devuelve todos, del más reciente al más antiguo.
 
-En Swagger UI, pide un JWT de administración mediante `POST /api/auth/token`, pégalo en **Authorize** y abre la
-sección **Administración**. Para una comprobación de solo lectura, ejecuta los listados de usuarios y préstamos,
-con y sin filtro. Para verificar el registro de una devolución, usa el test sobre H2 indicado más abajo.
-
-Consulta la [sección técnica de Administración](docs/memoria-administracion.md) para los detalles de implementación
-y los resultados de validación.
+En Swagger UI: pide el token de `admin@example.com` con `POST /api/auth/token`, pégalo en **Authorize** y abre la
+sección **Administración**. Ojo: el alta, la edición, el borrado y la devolución cambian datos de verdad; para volver
+a los datos de prueba, `docker compose down -v` y `docker compose up -d`.
 
 ### Errores
 
@@ -207,18 +203,11 @@ La carpeta **Catálogo** contiene siete consultas sin token: listado, búsqueda,
 libro inexistente (404), listado de autores y ficha de autor. Sus comprobaciones no dependen de cuántos libros
 haya, así que la colección se puede ejecutar varias veces seguidas, también contra MariaDB.
 
-Si ya tienes la colección importada, vuelve a importar su JSON con **Replace** y conserva el entorno local.
-Ejecuta **Token** antes de **Administración** para obtener los JWT de la instancia actual. En el Runner puedes
-seleccionar los listados y los casos de validación y acceso para comprobar la API sin escrituras.
-
-La ejecución completa de **Administración** incluye un ciclo que da de alta, edita y elimina un libro identificado
-como `FP065 Postman`. La colección usa el ID devuelto por el alta y verifica con un GET que la ficha deja de existir.
-Si se interrumpe después de crear el libro, el registro de prueba puede quedar en esa base. Las peticiones de devolución
-se omiten automáticamente. Su caso de éxito y la repetición se comprueban en H2:
-
-```bash
-./mvnw -B -Dtest=PrestamoAdminApiTest test
-```
+La carpeta **Administración** necesita los tokens de **Token**, así que se ejecuta después. Su ciclo de libros da de
+alta un libro de prueba (`FP065 Postman …`) con un ISBN nuevo en cada ejecución, lo edita, lo borra y comprueba que ya no
+existe. Las devoluciones se comprueban con un préstamo ya devuelto (409) y con uno que no existe (404), de modo que la
+carpeta no cambia ningún préstamo; la devolución correcta la comprueba `PrestamoAdminApiTest`. Si una ejecución se
+interrumpe a mitad del ciclo, el libro de prueba puede quedarse en la base: se borra desde la web o con `DELETE`.
 
 La misma colección se ejecuta con Newman en GitHub Actions en cada pull request (job *API con Postman*). En local:
 
@@ -239,8 +228,8 @@ Los tests de la API están en `src/test/java/edu/uoc/biblioteca/api/` y extiende
 petición un token real. Los del catálogo (`CatalogoApiTest`) comprueban también que solo se abren sus `GET`, que los
 errores son JSON y que no se exponen datos de los lectores.
 
-`LibroAdminApiTest`, `UsuarioAdminApiTest` y `PrestamoAdminApiTest` añaden 26 casos para permisos y contratos
-de Administración. La validación del turno registró **237 tests** sin fallos y **95,40 %** de cobertura de líneas.
+Los de administración (`LibroAdminApiTest`, `UsuarioAdminApiTest` y `PrestamoAdminApiTest`) prueban cada operación
+con los tres perfiles —sin token, con token de USER y con token de ADMIN— y los campos exactos de cada respuesta.
 
 No necesitan Docker: se ejecutan sobre H2 con los scripts de MariaDB, y fallan si alguna entidad no coincide con las tablas.
 GitHub Actions los pasa en cada pull request y además levanta el `docker compose` completo.

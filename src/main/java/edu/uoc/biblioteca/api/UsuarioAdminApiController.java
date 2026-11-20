@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-/** Listado de usuarios reservado a ADMIN por ApiSecurityConfig. */
+/** Usuarios de la biblioteca, para la administración. Solo con un token de ADMIN. */
 @RestController
 @RequestMapping("/api/admin/usuarios")
 @Tag(name = "Administración")

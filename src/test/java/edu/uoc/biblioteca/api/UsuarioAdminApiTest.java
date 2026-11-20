@@ -4,6 +4,7 @@ import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,6 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/** /api/admin/usuarios: el listado de usuarios, sin contraseñas y solo con token de ADMIN. */
 class UsuarioAdminApiTest extends ApiTest {
 
     private static final String USUARIOS = "/api/admin/usuarios";
@@ -53,7 +55,7 @@ class UsuarioAdminApiTest extends ApiTest {
                 .andExpect(jsonPath("$[3].fechaAlta").isString())
                 .andExpect(jsonPath("$[3].prestamosEnCurso").value(2))
                 .andExpect(jsonPath("$[3].prestamosVencidos").value(1))
-                .andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
 
         Set<String> campos = Set.of("id", "dni", "nombre", "apellidos", "email", "telefono",
                 "rol", "fechaAlta", "prestamosEnCurso", "prestamosVencidos");

@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-/** Listado de préstamos y devoluciones reservados a ADMIN por ApiSecurityConfig. */
+/** Todos los préstamos y el registro de devoluciones. Solo con un token de ADMIN. */
 @RestController
 @RequestMapping("/api/admin/prestamos")
 @Tag(name = "Administración")
@@ -32,19 +32,20 @@ public class PrestamoAdminApiController {
 
     @GetMapping
     @Operation(summary = "Listar los préstamos",
-            description = "Del más reciente al más antiguo. Con «estado», solo los ACTIVO (dentro de plazo), "
-                    + "VENCIDO (fuera de plazo y sin devolver) o DEVUELTO.")
+            description = "Del más reciente al más antiguo. Con «estado», solo los de ese estado: "
+                    + "ACTIVO (dentro de plazo), VENCIDO (fuera de plazo y sin devolver) o DEVUELTO.")
     @ApiResponse(responseCode = "200", description = "Los préstamos")
     @ApiResponse(responseCode = "400", description = "El estado no es ACTIVO, VENCIDO ni DEVUELTO")
     public List<PrestamoDto> listarPrestamos(
-            @Parameter(description = "Estado por el que filtrar")
+            @Parameter(description = "Estado del préstamo: ACTIVO, VENCIDO o DEVUELTO")
             @RequestParam(required = false) EstadoPrestamo estado) {
         return prestamoService.listar(estado).stream().map(PrestamoDto::de).toList();
     }
 
     @PostMapping("/{id}/devolucion")
     @Operation(summary = "Registrar una devolución",
-            description = "Marca el préstamo como devuelto hoy y actualiza los avisos de la biblioteca.")
+            description = "Marca el préstamo como devuelto hoy. Si alguien tenía reservado el libro, "
+                    + "le llega el aviso de que ya puede pedirlo.")
     @ApiResponse(responseCode = "200", description = "Préstamo devuelto")
     @ApiResponse(responseCode = "400", description = "El id no es un número")
     @ApiResponse(responseCode = "404", description = "No existe ningún préstamo con ese id")

@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDate;
 
-/** Datos del usuario para el listado de administración. */
+/** Un usuario para la administración. Nunca lleva la contraseña. */
 @Schema(description = "Usuario de la biblioteca, sin contraseña")
 public record UsuarioResumen(
         @Schema(example = "1") Long id,

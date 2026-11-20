@@ -19,6 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/** /api/admin/prestamos: listado por estado y registro de devoluciones, solo con token de ADMIN. */
 class PrestamoAdminApiTest extends ApiTest {
 
     private static final String PRESTAMOS = "/api/admin/prestamos";
@@ -72,7 +73,7 @@ class PrestamoAdminApiTest extends ApiTest {
     }
 
     @Test
-    void registraLaDevolucionYActualizarElEstadoImpideRepetirla() throws Exception {
+    void registraLaDevolucionYNoDejaRepetirla() throws Exception {
         mvc.perform(post(DEVOLUCION, 6).with(token(ADMIN)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))

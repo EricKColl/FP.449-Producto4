@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/** /api/admin/libros: alta, edición y baja de libros con los tres perfiles (sin token, USER y ADMIN). */
 class LibroAdminApiTest extends ApiTest {
 
     private static final String LIBROS = "/api/admin/libros";

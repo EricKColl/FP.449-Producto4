@@ -27,7 +27,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
 
-/** Alta, edición y baja de libros, reservadas a ADMIN por ApiSecurityConfig. */
+/** Alta, edición y baja de libros. Solo con un token de ADMIN (ApiSecurityConfig: /api/admin/**). */
 @RestController
 @RequestMapping("/api/admin/libros")
 @Tag(name = "Administración")
@@ -81,6 +81,7 @@ public class LibroAdminApiController {
         libroService.eliminar(id);
     }
 
+    /** Pasa el JSON a un Libro con sus autores, y comprueba que el ISBN no lo tenga otro libro. */
     private Libro aLibro(LibroEntrada datos, Long id) {
         Libro libro = new Libro(datos.isbn().strip(), datos.titulo().strip());
         libro.setId(id);
@@ -97,6 +98,7 @@ public class LibroAdminApiController {
         return libro;
     }
 
+    /** Un autor que no existe es un dato mal enviado (400), no una ruta que no existe (404). */
     private Autor buscarAutor(Long id) {
         try {
             return autorService.buscarPorId(id);

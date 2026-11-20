@@ -10,7 +10,7 @@ import jakarta.validation.constraints.Size;
 
 import java.util.List;
 
-/** Cuerpo de las peticiones de alta y edición de libros. */
+/** Cuerpo de POST y PUT /api/admin/libros. Las reglas son las mismas que las del formulario de la web. */
 @Schema(description = "Datos de un libro para darlo de alta o modificarlo")
 public record LibroEntrada(
         @Schema(example = "978-84-9759-243-7")

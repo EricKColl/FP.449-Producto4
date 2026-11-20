@@ -536,7 +536,7 @@
     },
     {
       "name": "Administración",
-      "description": "Ejecuta Token antes de Administración. El ciclo de libros crea y limpia un registro identificado con FP065 Postman. Las devoluciones quedan deshabilitadas y se verifican en H2.",
+      "description": "Gestión de la biblioteca con el token de ADMIN (tokenAdmin): ejecuta antes la carpeta Token. El ciclo de libros da de alta un libro de prueba con un ISBN nuevo en cada ejecución, lo edita, lo borra y comprueba que ya no existe. Las devoluciones se comprueban con un préstamo ya devuelto (409) y con uno que no existe (404), así que la carpeta no cambia ningún préstamo. La devolución correcta (200) la comprueba PrestamoAdminApiTest.",
       "item": [
         {
           "name": "Libros · Alta del libro de prueba",
@@ -1280,12 +1280,12 @@
           ]
         },
         {
-          "name": "Préstamos · Devolución exitosa (solo H2 aislado)",
+          "name": "Préstamos · Devolver un préstamo ya devuelto: 409",
           "request": {
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/admin/prestamos/{{adminPrestamoH2Id}}/devolucion",
+              "raw": "{{baseUrl}}/api/admin/prestamos/1/devolucion",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1293,72 +1293,7 @@
                 "api",
                 "admin",
                 "prestamos",
-                "{{adminPrestamoH2Id}}",
-                "devolucion"
-              ]
-            },
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{tokenAdmin}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "description": "Deshabilitada durante la ejecución. Verifica la devolución y el 409 al repetirla con PrestamoAdminApiTest sobre H2. Para una comprobación HTTP manual usa una copia de esta petición en una instancia H2 aislada, un token de esa instancia y un ID de prueba."
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "exec": [
-                  "pm.execution.skipRequest();"
-                ],
-                "type": "text/javascript"
-              }
-            },
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));",
-                  "const prestamos = [pm.response.json()];",
-                  "pm.test(\"El préstamo sigue el contrato del DTO\", () => {",
-                  "    prestamos.forEach(prestamo => {",
-                  "        pm.expect(prestamo).to.have.all.keys(\"id\", \"libroId\", \"titulo\", \"usuarioId\", \"usuario\", \"fechaPrestamo\", \"fechaDevolucionPrevista\", \"fechaDevolucion\", \"estado\", \"renovado\");",
-                  "        pm.expect(prestamo.estado).to.be.oneOf([\"ACTIVO\", \"VENCIDO\", \"DEVUELTO\"]);",
-                  "        pm.expect(prestamo.renovado).to.be.a(\"boolean\");",
-                  "    });",
-                  "});",
-                  "pm.test(\"Registra la devolución del préstamo de prueba\", () => {",
-                  "    pm.expect(String(prestamos[0].id)).to.eql(String(pm.variables.get(\"adminPrestamoH2Id\")));",
-                  "    pm.expect(prestamos[0].estado).to.eql(\"DEVUELTO\");",
-                  "    pm.expect(prestamos[0].fechaDevolucion).to.match(/^\\d{4}-\\d{2}-\\d{2}$/);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
-        },
-        {
-          "name": "Préstamos · Devolución repetida (solo H2 aislado): 409",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/admin/prestamos/{{adminPrestamoH2Id}}/devolucion",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "admin",
-                "prestamos",
-                "{{adminPrestamoH2Id}}",
+                "1",
                 "devolucion"
               ]
             },
@@ -1377,15 +1312,6 @@
           "response": [],
           "event": [
             {
-              "listen": "prerequest",
-              "script": {
-                "exec": [
-                  "pm.execution.skipRequest();"
-                ],
-                "type": "text/javascript"
-              }
-            },
-            {
               "listen": "test",
               "script": {
                 "exec": [
@@ -1398,6 +1324,57 @@
                   "    pm.expect(error.detail).to.be.a(\"string\").and.not.empty;",
                   "});",
                   "pm.test(\"Explica que el préstamo ya estaba devuelto\", () => pm.expect(pm.response.json().detail).to.eql(\"Ese préstamo ya estaba devuelto\"));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Préstamos · Devolver un préstamo que no existe: 404",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/prestamos/999/devolucion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "prestamos",
+                "999",
+                "devolucion"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdmin}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Deshabilitada durante la ejecución. En una instancia H2 aislada, repite la petición anterior con el mismo ID y token."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Responde 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"Formato Problem Details\", () => {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.match(/^application\\/problem\\+json\\b/i);",
+                  "    const error = pm.response.json();",
+                  "    pm.expect(error).to.include.keys(\"status\", \"title\", \"detail\", \"instance\");",
+                  "    pm.expect(error.status).to.eql(404);",
+                  "    pm.expect(error.detail).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "pm.test(\"Explica qué préstamo falta\", () => pm.expect(pm.response.json().detail).to.eql(\"No existe el préstamo 999\"));"
                 ],
                 "type": "text/javascript"
               }
