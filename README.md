@@ -146,9 +146,9 @@ En Swagger UI: ejecuta `POST /api/auth/token`, copia el token, pulsa **Authorize
 | `POST /api/admin/libros` · `PUT /api/admin/libros/{id}` · `DELETE /api/admin/libros/{id}` | ADMIN | Alta, edición y baja de libros | Carles ✅ |
 | `GET /api/admin/usuarios` | ADMIN | Usuarios, sin contraseñas | Carles ✅ |
 | `GET /api/admin/prestamos` · `POST /api/admin/prestamos/{id}/devolucion` | ADMIN | Préstamos por estado y devoluciones | Carles ✅ |
-| `GET /api/user/prestamos` · `POST /api/user/prestamos/{id}/renovacion` | USER | Mis préstamos y renovarlos | Antonio |
-| `GET` · `POST` · `DELETE /api/user/reservas` | USER | Mis reservas y su puesto en la cola | Antonio |
-| `GET` · `PUT` · `DELETE /api/user/favoritos` | USER | Mis favoritos | Antonio |
+| `GET /api/user/prestamos` · `POST /api/user/prestamos/{id}/renovacion` | USER | Mis préstamos y renovarlos | Antonio ✅ |
+| `GET` · `POST` · `DELETE /api/user/reservas` | USER | Mis reservas y su puesto en la cola | Antonio ✅ |
+| `GET` · `PUT` · `DELETE /api/user/favoritos` | USER | Mis favoritos | Antonio ✅ |
 
 Sin token, las rutas protegidas responden **401**; con un token de otro rol, **403**. El usuario de `/api/user/*` sale
 siempre del token, nunca de la URL ni del cuerpo.
