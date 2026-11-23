@@ -1,3 +1,0 @@
-$kind: collection
-description: "Pedir los tokens. Ejecútala primero: guarda tokenAdmin y tokenUsuario para el resto de la colección."
-order: 2000

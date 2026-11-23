@@ -1,7 +1,10 @@
 package edu.uoc.biblioteca.api;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+
 import java.time.LocalDate;
+
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.startsWith;
@@ -11,21 +14,27 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 /** /api/user/*: préstamos, reservas y favoritos de la cuenta del token. Nadie ve ni toca lo de otro. */
 class ClienteApiTest extends ApiTest {
-// --- Quién puede entrar -------------------------------------------------------------------
-@Test
-void sinTokenNoSeEntra() throws Exception {
-    mvc.perform(get("/api/user/prestamos")).andExpect(status().isUnauthorized());
-    mvc.perform(get("/api/user/reservas")).andExpect(status().isUnauthorized());
-    mvc.perform(get("/api/user/favoritos")).andExpect(status().isUnauthorized());
-}
+
+    // --- Quién puede entrar -------------------------------------------------------------------
+
+    @Test
+    void sinTokenNoSeEntra() throws Exception {
+        mvc.perform(get("/api/user/prestamos")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/user/reservas")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/user/favoritos")).andExpect(status().isUnauthorized());
+    }
+
     @Test
     void conTokenDeAdministracionNoSeEntra() throws Exception {
         mvc.perform(get("/api/user/prestamos").with(token(ADMIN))).andExpect(status().isForbidden());
         mvc.perform(put("/api/user/favoritos/4").with(token(ADMIN))).andExpect(status().isForbidden());
     }
+
     // --- Préstamos ----------------------------------------------------------------------------
+
     @Test
     void cadaUnoVeSoloSusPrestamos() throws Exception {
         mvc.perform(get("/api/user/prestamos").with(token(LAURA)))
@@ -36,6 +45,7 @@ void sinTokenNoSeEntra() throws Exception {
         mvc.perform(get("/api/user/prestamos").with(token(JAVIER)))
                 .andExpect(jsonPath("$[*].id", contains(11, 6, 2)));
     }
+
     @Test
     void renuevaUnPrestamoUnaSolaVez() throws Exception {
         String nuevaFecha = LocalDate.now().plusDays(25).toString();
@@ -48,11 +58,13 @@ void sinTokenNoSeEntra() throws Exception {
                 .andExpect(jsonPath("$.detail")
                         .value("No se puede renovar «Cien años de soledad»: ya se renovó una vez"));
     }
+
     @Test
     void elPrestamoDeOtroNoExisteParaMi() throws Exception {
         mvc.perform(post("/api/user/prestamos/7/renovacion").with(token(JAVIER)))
                 .andExpect(status().isNotFound());
     }
+
     @Test
     void unPrestamoVencidoNoSeRenueva() throws Exception {
         mvc.perform(post("/api/user/prestamos/6/renovacion").with(token(JAVIER)))
@@ -60,7 +72,9 @@ void sinTokenNoSeEntra() throws Exception {
                 .andExpect(jsonPath("$.detail",
                         startsWith("No se puede renovar «El señor de los anillos»")));
     }
+
     // --- Reservas -----------------------------------------------------------------------------
+
     @Test
     void verMisReservasConSuPuestoEnLaCola() throws Exception {
         mvc.perform(get("/api/user/reservas").with(token(LAURA)))
@@ -70,9 +84,10 @@ void sinTokenNoSeEntra() throws Exception {
                 .andExpect(jsonPath("$[0].estado").value("ACTIVA"))
                 .andExpect(jsonPath("$[0].puestoEnCola").value(1));
     }
+
     @Test
     void reservaUnLibroSinEjemplaresLibres() throws Exception {
-// El señor de los anillos: un ejemplar, prestado a Javier
+        // El señor de los anillos: un ejemplar, prestado a Javier
         mvc.perform(post("/api/user/reservas").with(token(LAURA))
                         .contentType(MediaType.APPLICATION_JSON).content("{\"libroId\": 10}"))
                 .andExpect(status().isCreated())
@@ -80,6 +95,7 @@ void sinTokenNoSeEntra() throws Exception {
                 .andExpect(jsonPath("$.puestoEnCola").value(1));
         mvc.perform(get("/api/user/reservas").with(token(LAURA))).andExpect(jsonPath("$", hasSize(2)));
     }
+
     @Test
     void unLibroConEjemplaresLibresNoSeReserva() throws Exception {
         mvc.perform(post("/api/user/reservas").with(token(LAURA))
@@ -88,6 +104,7 @@ void sinTokenNoSeEntra() throws Exception {
                 .andExpect(jsonPath("$.detail")
                         .value("«1984» tiene ejemplares disponibles: puedes pedirlo prestado"));
     }
+
     @Test
     void sinLibroDevuelve400YUnLibroQueNoExiste404() throws Exception {
         mvc.perform(post("/api/user/reservas").with(token(LAURA))
@@ -98,6 +115,7 @@ void sinTokenNoSeEntra() throws Exception {
                         .contentType(MediaType.APPLICATION_JSON).content("{\"libroId\": 999}"))
                 .andExpect(status().isNotFound());
     }
+
     @Test
     void cancelaSuReservaYNoLaDeOtro() throws Exception {
         mvc.perform(delete("/api/user/reservas/1").with(token(JAVIER))).andExpect(status().isNotFound());
@@ -106,7 +124,9 @@ void sinTokenNoSeEntra() throws Exception {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.detail").value("Esa reserva ya estaba cancelada"));
     }
+
     // --- Favoritos ----------------------------------------------------------------------------
+
     @Test
     void marcaYQuitaFavoritos() throws Exception {
         mvc.perform(get("/api/user/favoritos").with(token(LAURA)))
@@ -119,16 +139,19 @@ void sinTokenNoSeEntra() throws Exception {
         mvc.perform(get("/api/user/favoritos").with(token(LAURA)))
                 .andExpect(jsonPath("$[*].titulo", contains("El hobbit", "La sombra del viento")));
     }
+
     @Test
     void losFavoritosDeOtroNoCambian() throws Exception {
         mvc.perform(put("/api/user/favoritos/4").with(token(LAURA)));
         mvc.perform(get("/api/user/favoritos").with(token(JAVIER)))
                 .andExpect(jsonPath("$", hasSize(0)));
     }
+
     @Test
     void unLibroQueNoExisteNoSeMarca() throws Exception {
         mvc.perform(put("/api/user/favoritos/999").with(token(LAURA))).andExpect(status().isNotFound());
     }
+
     @Test
     void elClienteSaleEnSwagger() throws Exception {
         mvc.perform(get("/v3/api-docs"))

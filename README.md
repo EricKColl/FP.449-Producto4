@@ -175,6 +175,25 @@ En Swagger UI: pide el token de `admin@example.com` con `POST /api/auth/token`, 
 sección **Administración**. Ojo: el alta, la edición, el borrado y la devolución cambian datos de verdad; para volver
 a los datos de prueba, `docker compose down -v` y `docker compose up -d`.
 
+### Cliente
+
+Las ocho operaciones de `/api/user/**` necesitan un token de una cuenta USER: sin token responden **401** y con el token
+de administración, **403**. El usuario sale siempre del token (`TokenService.usuarioId`), nunca de la dirección ni del
+cuerpo: el préstamo o la reserva de otro socio responde **404**, como si no existiera.
+
+| Operación | Respuesta correcta | Errores de la operación |
+|---|---|---|
+| Mis préstamos | `200` con la lista de `PrestamoDto` | |
+| Renovar un préstamo | `200` con la nueva fecha de devolución | `404` si no es suyo, `409` si ya se renovó, está fuera de plazo o hay reservas |
+| Mis reservas | `200` con la lista de `ReservaDto` y el puesto de cada una en la cola | |
+| Reservar un libro | `201` con la reserva y su puesto en la cola | `400` sin `libroId`, `404` si el libro no existe, `409` si tiene ejemplares libres, ya lo tiene o ya lo reservó |
+| Cancelar una reserva | `204` sin cuerpo | `404` si no es suya, `409` si ya estaba cancelada |
+| Mis favoritos | `200` con la lista de `LibroResumen` | |
+| Marcar o quitar un favorito | `200` con el libro / `204` sin cuerpo | `404` si el libro no existe |
+
+Las reglas son las de la web, porque los controladores llaman a los mismos servicios: una sola renovación por préstamo,
+la cola de reservas por orden de llegada y los favoritos como un conjunto (marcar dos veces no da error).
+
 ### Errores
 
 Todos los errores son JSON con el formato estándar *Problem Details* (RFC 9457):
@@ -209,6 +228,14 @@ existe. Las devoluciones se comprueban con un préstamo ya devuelto (409) y con 
 carpeta no cambia ningún préstamo; la devolución correcta la comprueba `PrestamoAdminApiTest`. Si una ejecución se
 interrumpe a mitad del ciclo, el libro de prueba puede quedarse en la base: se borra desde la web o con `DELETE`.
 
+La carpeta **Cliente** usa el token de Laura. Reservar y cancelar van seguidas, igual que marcar y quitar el favorito,
+así que deja los datos como estaban. La renovación solo se puede hacer una vez: la primera ejecución responde 200 y las
+siguientes 409, y la petición comprueba las dos respuestas.
+
+Para que el resto del equipo reciba los cambios, la colección se **exporta** (*Export → Collection v2.1*) encima de
+`postman/biblioteca-api.postman_collection.json`. Las carpetas que crea Postman al sincronizarse con su espacio de
+trabajo (`.postman/`, `postman/collections/`…) no se suben: GitHub solo ejecuta el fichero exportado.
+
 La misma colección se ejecuta con Newman en GitHub Actions en cada pull request (job *API con Postman*). En local:
 
 ```bash
@@ -230,6 +257,9 @@ errores son JSON y que no se exponen datos de los lectores.
 
 Los de administración (`LibroAdminApiTest`, `UsuarioAdminApiTest` y `PrestamoAdminApiTest`) prueban cada operación
 con los tres perfiles —sin token, con token de USER y con token de ADMIN— y los campos exactos de cada respuesta.
+
+Los del cliente (`ClienteApiTest`) comprueban que cada socio solo ve y toca lo suyo: con el token de Javier, renovar el
+préstamo de Laura o cancelar su reserva responde 404.
 
 No necesitan Docker: se ejecutan sobre H2 con los scripts de MariaDB, y fallan si alguna entidad no coincide con las tablas.
 GitHub Actions los pasa en cada pull request y además levanta el `docker compose` completo.

@@ -1,3 +1,0 @@
-$kind: collection
-description: Libros y autores abiertos a cualquiera, sin token. Búsqueda sin distinguir mayúsculas ni tildes, filtro por género, fichas y errores en JSON.
-order: 1000

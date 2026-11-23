@@ -1,3 +1,0 @@
-$kind: collection
-description: "Cómo responde la API cuando algo no se puede hacer: siempre JSON con status, title y detail."
-order: 4000
