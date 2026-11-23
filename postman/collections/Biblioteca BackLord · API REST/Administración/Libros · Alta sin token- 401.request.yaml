@@ -1,0 +1,30 @@
+$kind: http-request
+name: "Libros · Alta sin token: 401"
+url: "{{baseUrl}}/api/admin/libros"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "isbn": "",
+      "titulo": "",
+      "ejemplares": 0,
+      "autores": []
+    }
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Responde 401", () => pm.response.to.have.status(401));
+      pm.test("Formato Problem Details", () => {
+          pm.expect(pm.response.headers.get("Content-Type")).to.match(/^application\/problem\+json\b/i);
+          const error = pm.response.json();
+          pm.expect(error).to.include.keys("status", "title", "detail", "instance");
+          pm.expect(error.status).to.eql(401);
+          pm.expect(error.detail).to.be.a("string").and.not.empty;
+      });
+    language: text/javascript
+order: 7000

@@ -1,0 +1,24 @@
+$kind: http-request
+url: "{{baseUrl}}/api/user/prestamos"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{tokenUsuario}}"
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));\r
+
+      const prestamos = pm.response.json();\r
+
+      pm.test(\"Son todos de Laura\", () => {\r
+
+      prestamos.forEach(p => pm.expect(p.usuario).to.eql(\"Laura Martínez Soler\"));\r
+
+      });\r
+
+      const activo = prestamos.find(p => p.estado === \"ACTIVO\");\r
+
+      if (activo) { pm.collectionVariables.set(\"prestamoActivoId\", activo.id); }"
+    language: text/javascript
+order: 1000

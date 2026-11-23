@@ -1,0 +1,23 @@
+$kind: http-request
+name: "Préstamos · Devolver un préstamo ya devuelto: 409"
+description: Deshabilitada durante la ejecución. En una instancia H2 aislada, repite la petición anterior con el mismo ID y token.
+url: "{{baseUrl}}/api/admin/prestamos/1/devolucion"
+method: POST
+auth:
+  type: bearer
+  credentials:
+    token: "{{tokenAdmin}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Responde 409", () => pm.response.to.have.status(409));
+      pm.test("Formato Problem Details", () => {
+          pm.expect(pm.response.headers.get("Content-Type")).to.match(/^application\/problem\+json\b/i);
+          const error = pm.response.json();
+          pm.expect(error).to.include.keys("status", "title", "detail", "instance");
+          pm.expect(error.status).to.eql(409);
+          pm.expect(error.detail).to.be.a("string").and.not.empty;
+      });
+      pm.test("Explica que el préstamo ya estaba devuelto", () => pm.expect(pm.response.json().detail).to.eql("Ese préstamo ya estaba devuelto"));
+    language: text/javascript
+order: 13000

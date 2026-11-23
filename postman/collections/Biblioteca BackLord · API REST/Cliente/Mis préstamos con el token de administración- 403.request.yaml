@@ -1,0 +1,5 @@
+$kind: http-request
+name: "Mis préstamos con el token de administración: 403"
+url: "{{baseUrl}}/api/user/prestamos"
+method: GET
+order: 10000

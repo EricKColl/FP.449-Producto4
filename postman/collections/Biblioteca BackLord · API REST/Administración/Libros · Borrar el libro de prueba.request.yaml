@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{baseUrl}}/api/admin/libros/{{adminLibroId}}"
+method: DELETE
+auth:
+  type: bearer
+  credentials:
+    token: "{{tokenAdmin}}"
+scripts:
+  - type: beforeRequest
+    code: |-
+      const id = pm.variables.get("adminLibroId");
+      if (!/^[1-9]\d*$/.test(String(id)) || !pm.variables.get("adminLibroIsbn")) {
+          pm.execution.skipRequest();
+      }
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test("Responde 204", () => pm.response.to.have.status(204));
+      pm.test("El cuerpo está vacío", () => pm.expect(pm.response.text()).to.eql(""));
+    language: text/javascript
+order: 4000

@@ -1,0 +1,24 @@
+$kind: http-request
+name: "Préstamos · Estado inválido: 400"
+url: "{{baseUrl}}/api/admin/prestamos?estado=PERDIDO"
+method: GET
+queryParams:
+  estado: PERDIDO
+auth:
+  type: bearer
+  credentials:
+    token: "{{tokenAdmin}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Responde 400", () => pm.response.to.have.status(400));
+      pm.test("Formato Problem Details", () => {
+          pm.expect(pm.response.headers.get("Content-Type")).to.match(/^application\/problem\+json\b/i);
+          const error = pm.response.json();
+          pm.expect(error).to.include.keys("status", "title", "detail", "instance");
+          pm.expect(error.status).to.eql(400);
+          pm.expect(error.detail).to.be.a("string").and.not.empty;
+      });
+      pm.test("Identifica el filtro incorrecto", () => pm.expect(pm.response.json().detail).to.include("parámetro estado"));
+    language: text/javascript
+order: 12000

@@ -1,0 +1,3 @@
+$kind: collection
+description: "Gestión de la biblioteca con el token de ADMIN (tokenAdmin): ejecuta antes la carpeta Token. El ciclo de libros da de alta un libro de prueba con un ISBN nuevo en cada ejecución, lo edita, lo borra y comprueba que ya no existe. Las devoluciones se comprueban con un préstamo ya devuelto (409) y con uno que no existe (404), así que la carpeta no cambia ningún préstamo. La devolución correcta (200) la comprueba PrestamoAdminApiTest."
+order: 3000

@@ -1,0 +1,19 @@
+$kind: http-request
+name: "Filtrar libros por género: fantasía"
+url: "{{baseUrl}}/api/libros?genero=fantasia"
+method: GET
+queryParams:
+  genero: fantasia
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Responde 200", () => pm.response.to.have.status(200));
+      pm.test("Solo devuelve libros de fantasía, también sin la tilde", () => {
+          const libros = pm.response.json();
+          pm.expect(libros.map(libro => libro.titulo)).to.include.members(["El hobbit", "El señor de los anillos"]);
+          libros.forEach(libro => pm.expect(libro.genero).to.eql("Fantasía"));
+      });
+    language: text/javascript
+order: 3000

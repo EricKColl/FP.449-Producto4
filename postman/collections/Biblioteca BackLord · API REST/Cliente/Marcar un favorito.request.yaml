@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{baseUrl}}/api/user/favoritos/4"
+method: PUT
+auth:
+  type: bearer
+  credentials:
+    token: "{{tokenUsuario}}"
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Responde 200\", () => pm.response.to.have.status(200));\r
+
+      pm.test(\"Devuelve el libro\", () => pm.expect(pm.response.json().titulo).to.eql(\"La sombra del viento\"));"
+    language: text/javascript
+order: 7000

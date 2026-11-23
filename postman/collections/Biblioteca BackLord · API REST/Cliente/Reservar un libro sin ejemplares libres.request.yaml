@@ -1,0 +1,27 @@
+$kind: http-request
+url: "{{baseUrl}}/api/user/reservas"
+method: POST
+body:
+  type: json
+  content: "{\r\n\"libroId\": 10\r\n}"
+auth:
+  type: bearer
+  credentials:
+    token: "{{tokenUsuario}}"
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Responde 201\", () => pm.response.to.have.status(201));\r
+
+      const reserva = pm.response.json();\r
+
+      pm.test(\"Queda a la cola\", () => {\r
+
+      pm.expect(reserva.estado).to.eql(\"ACTIVA\");\r
+
+      pm.expect(reserva.puestoEnCola).to.be.above(0);\r
+
+      });\r
+
+      pm.collectionVariables.set(\"reservaNuevaId\", reserva.id);"
+    language: text/javascript
+order: 3000

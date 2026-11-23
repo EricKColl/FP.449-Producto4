@@ -1,0 +1,26 @@
+$kind: http-request
+url: "{{baseUrl}}/api/admin/prestamos"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{tokenAdmin}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Responde 200", () => pm.response.to.have.status(200));
+      const prestamos = pm.response.json();
+      pm.test("El listado está ordenado del más reciente al más antiguo", () => {
+          pm.expect(prestamos).to.be.an("array");
+          const fechas = prestamos.map(prestamo => prestamo.fechaPrestamo);
+          pm.expect(fechas).to.eql([...fechas].sort().reverse());
+      });
+      pm.test("El préstamo sigue el contrato del DTO", () => {
+          prestamos.forEach(prestamo => {
+              pm.expect(prestamo).to.have.all.keys("id", "libroId", "titulo", "usuarioId", "usuario", "fechaPrestamo", "fechaDevolucionPrevista", "fechaDevolucion", "estado", "renovado");
+              pm.expect(prestamo.estado).to.be.oneOf(["ACTIVO", "VENCIDO", "DEVUELTO"]);
+              pm.expect(prestamo.renovado).to.be.a("boolean");
+          });
+      });
+    language: text/javascript
+order: 10000

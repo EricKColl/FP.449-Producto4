@@ -1,0 +1,23 @@
+$kind: http-request
+name: "Préstamos · Devolver un préstamo que no existe: 404"
+description: Deshabilitada durante la ejecución. En una instancia H2 aislada, repite la petición anterior con el mismo ID y token.
+url: "{{baseUrl}}/api/admin/prestamos/999/devolucion"
+method: POST
+auth:
+  type: bearer
+  credentials:
+    token: "{{tokenAdmin}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Responde 404", () => pm.response.to.have.status(404));
+      pm.test("Formato Problem Details", () => {
+          pm.expect(pm.response.headers.get("Content-Type")).to.match(/^application\/problem\+json\b/i);
+          const error = pm.response.json();
+          pm.expect(error).to.include.keys("status", "title", "detail", "instance");
+          pm.expect(error.status).to.eql(404);
+          pm.expect(error.detail).to.be.a("string").and.not.empty;
+      });
+      pm.test("Explica qué préstamo falta", () => pm.expect(pm.response.json().detail).to.eql("No existe el préstamo 999"));
+    language: text/javascript
+order: 14000

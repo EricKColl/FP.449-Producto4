@@ -1,0 +1,23 @@
+$kind: http-request
+url: "{{baseUrl}}/api/libros/2"
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Responde 200", () => pm.response.to.have.status(200));
+      const libro = pm.response.json();
+      pm.test("Es Cien años de soledad, con su autor y disponibilidad", () => {
+          pm.expect(libro.titulo).to.eql("Cien años de soledad");
+          pm.expect(libro.autores[0].apellidos).to.eql("García Márquez");
+          pm.expect(libro.ejemplares).to.eql(2);
+          pm.expect(libro.disponibles).to.eql(1);
+      });
+      pm.test("No devuelve los préstamos ni datos de los lectores", () => {
+          pm.expect(libro).to.not.have.property("prestamos");
+          pm.expect(libro).to.not.have.property("reservas");
+          pm.expect(libro).to.not.have.property("marcadoPor");
+      });
+    language: text/javascript
+order: 4000

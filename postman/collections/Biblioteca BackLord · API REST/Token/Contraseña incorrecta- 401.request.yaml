@@ -1,0 +1,22 @@
+$kind: http-request
+name: "Contraseña incorrecta: 401"
+url: "{{baseUrl}}/api/auth/token"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{adminEmail}}",
+      "password": "otra-contraseña"
+    }
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Responde 401", () => pm.response.to.have.status(401));
+      pm.test("Explica el error", () => pm.expect(pm.response.json().detail).to.eql("Email o contraseña incorrectos"));
+    language: text/javascript
+order: 3000
