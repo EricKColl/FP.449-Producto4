@@ -73,14 +73,15 @@ Rama `feature/carles-api-admin` · **Del lunes 23 al sábado 28 de noviembre** �
 
 ## Turno 4 · Cuenta del cliente (Antonio)
 
-Rama `feature/antonio-api-user` · **Del domingo 29 de noviembre al viernes 4 de diciembre**
+Rama `feature/antonio-api-user` · **Del domingo 29 de noviembre al viernes 4 de diciembre** · Terminado el 23 de noviembre
 
-- [ ] `GET /api/user/prestamos` y `POST /api/user/prestamos/{id}/renovacion`.
-- [ ] `GET`, `POST` y `DELETE` de `/api/user/reservas`, con el puesto en la cola.
-- [ ] `GET`, `PUT` y `DELETE` de `/api/user/favoritos/{libroId}`.
-- [ ] El usuario sale siempre del token, nunca de la URL ni del cuerpo: nadie ve ni toca lo de otro.
-- [ ] Solo con token de USER: sin token, 401; con token de ADMIN, 403.
-- [ ] Carpeta «Cliente» en Postman y tests de aislamiento entre usuarios.
+- [x] `GET /api/user/prestamos` y `POST /api/user/prestamos/{id}/renovacion`.
+- [x] `GET`, `POST` y `DELETE` de `/api/user/reservas`, con el puesto en la cola.
+- [x] `GET`, `PUT` y `DELETE` de `/api/user/favoritos/{libroId}`.
+- [x] El usuario sale siempre del token, nunca de la URL ni del cuerpo: nadie ve ni toca lo de otro.
+- [x] Solo con token de USER: sin token, 401; con token de ADMIN, 403.
+- [x] Carpeta «Cliente» en Postman, que deja los datos como estaban.
+- [x] Tests de aislamiento entre usuarios: `./mvnw verify` da **252 tests**.
 
 ## Calendario por turnos
 

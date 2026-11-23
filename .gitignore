@@ -41,3 +41,9 @@ desktop.ini
 *.log
 .env
 newman/
+
+### Postman: la colección se exporta a postman/*.json; su sincronización local no se sube ###
+.postman/
+postman/collections/
+postman/environments/
+postman/globals/
